@@ -4,7 +4,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/health/AppShell";
 import { AlertCard } from "@/components/health/AlertCard";
-import { acknowledgeAlert, ensureProfile, listAlerts } from "@/lib/health/api";
+import { acknowledgeAlert, ensureProfile, listAlerts, recordCaseReview } from "@/lib/health/api";
+import type { ReviewState } from "@/lib/health/types";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/alerts")({
@@ -48,6 +49,36 @@ function AlertsPage() {
     onError: () => toast.error("Could not acknowledge that alert."),
   });
 
+  const review = useMutation({
+    mutationFn: (vars: {
+      patientId: string;
+      alertId: string;
+      action: Exclude<ReviewState, "open">;
+      note: string;
+    }) =>
+      recordCaseReview({
+        patientId: vars.patientId,
+        alertId: vars.alertId,
+        action: vars.action,
+        note: vars.note,
+        reviewerId: user?.id ?? null,
+        reviewerName: profileQuery.data?.full_name ?? "Health worker",
+      }),
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["referrals"] });
+      toast.success(
+        vars.action === "escalated"
+          ? "Escalated — a referral has been raised for clinical review."
+          : vars.action === "closed"
+            ? "Case closed."
+            : "Marked as reviewed.",
+      );
+    },
+    onError: () => toast.error("Could not save that decision."),
+  });
+
   const role = profileQuery.data?.role === "doctor" ? "doctor" : "asha";
   const alerts = alertsQuery.data ?? [];
 
@@ -73,6 +104,10 @@ function AlertsPage() {
               alert={a}
               patient={a.patient ?? null}
               onAcknowledge={(id) => ack.mutate(id)}
+              reviewPending={review.isPending}
+              onReview={(action, note) =>
+                review.mutate({ patientId: a.patient_id, alertId: a.id, action, note })
+              }
             />
           ))}
         </div>
