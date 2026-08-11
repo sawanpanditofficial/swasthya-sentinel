@@ -17,7 +17,7 @@ import type {
 const SEVERITIES = ["mild", "moderate", "severe"] as const;
 
 interface ListProps {
-  busy?: boolean;
+  busy?: boolean | undefined;
   onDelete: (table: never, id: string) => Promise<void>;
 }
 
@@ -32,7 +32,7 @@ export function AllergyList({
   items: Allergy[];
   onAdd: (row: { substance: string; severity: string; reaction: string | null }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  busy?: boolean;
+  busy?: boolean | undefined;
 }) {
   const [substance, setSubstance] = useState("");
   const [severity, setSeverity] = useState<string>("moderate");
@@ -109,7 +109,7 @@ export function ConditionList({
   items: MedicalCondition[];
   onAdd: (row: { name: string; severity: string; notes: string | null }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  busy?: boolean;
+  busy?: boolean | undefined;
 }) {
   const [name, setName] = useState("");
   const [severity, setSeverity] = useState<string>("moderate");
@@ -183,7 +183,7 @@ export function MedicationList({
   onAdd: (row: { name: string; dosage: string | null; frequency: string | null }) => Promise<void>;
   onToggleActive: (id: string, active: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  busy?: boolean;
+  busy?: boolean | undefined;
 }) {
   const [name, setName] = useState("");
   const [dosage, setDosage] = useState("");
@@ -271,7 +271,7 @@ export function SurgeryList({
   items: Surgery[];
   onAdd: (row: { procedure: string; performed_on: string | null; hospital: string | null }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  busy?: boolean;
+  busy?: boolean | undefined;
 }) {
   const [procedure, setProcedure] = useState("");
   const [performedOn, setPerformedOn] = useState("");
@@ -340,7 +340,7 @@ export function ContactList({
   items: EmergencyContact[];
   onAdd: (row: { name: string; relationship: string | null; phone: string; priority: number }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  busy?: boolean;
+  busy?: boolean | undefined;
 }) {
   const [name, setName] = useState("");
   const [relationship, setRelationship] = useState("");
@@ -432,7 +432,7 @@ function Rows({
   items: { id: string; primary: string; secondary: string; severe: boolean }[];
   empty: string;
   onDelete: (id: string) => Promise<void>;
-  busy?: boolean;
+  busy?: boolean | undefined;
 }) {
   if (items.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
   return (
