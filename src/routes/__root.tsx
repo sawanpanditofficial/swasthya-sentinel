@@ -107,6 +107,30 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  const recoveryKey = "swasthya-module-recovery";
+  const recover = () => {
+    if (sessionStorage.getItem(recoveryKey)) return;
+    sessionStorage.setItem(recoveryKey, "1");
+    window.location.reload();
+  };
+
+  window.addEventListener("vite:preloadError", (event) => {
+    event.preventDefault();
+    recover();
+  });
+
+  window.addEventListener("error", (event) => {
+    const target = event.target;
+    if (target instanceof HTMLScriptElement && target.type === "module") recover();
+  }, true);
+
+  window.addEventListener("load", () => sessionStorage.removeItem(recoveryKey), { once: true });
+})();`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
