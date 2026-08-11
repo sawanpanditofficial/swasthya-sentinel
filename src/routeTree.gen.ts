@@ -23,6 +23,7 @@ import { Route as AuthenticatedResponderRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedShadowRouteImport } from './routes/_authenticated/shadow'
 import { Route as AuthenticatedWorkerRouteImport } from './routes/_authenticated/worker'
+import { Route as EmergencyTokenRouteImport } from './routes/emergency.$token'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedPatientsIdRouteImport } from './routes/_authenticated/patients.$id'
@@ -98,6 +99,11 @@ const AuthenticatedWorkerRoute = AuthenticatedWorkerRouteImport.update({
   path: '/worker',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const EmergencyTokenRoute = EmergencyTokenRouteImport.update({
+  id: '/emergency/$token',
+  path: '/emergency/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/shadow': typeof AuthenticatedShadowRoute
   '/worker': typeof AuthenticatedWorkerRoute
+  '/emergency/$token': typeof EmergencyTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/shadow': typeof AuthenticatedShadowRoute
   '/worker': typeof AuthenticatedWorkerRoute
+  '/emergency/$token': typeof EmergencyTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shadow': typeof AuthenticatedShadowRoute
   '/_authenticated/worker': typeof AuthenticatedWorkerRoute
+  '/emergency/$token': typeof EmergencyTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/patients/$id': typeof AuthenticatedPatientsIdRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shadow'
     | '/worker'
+    | '/emergency/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/patients/$id'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shadow'
     | '/worker'
+    | '/emergency/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/patients/$id'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/shadow'
     | '/_authenticated/worker'
+    | '/emergency/$token'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/patients/$id'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  EmergencyTokenRoute: typeof EmergencyTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/emergency/$token': {
+      id: '/emergency/$token'
+      path: '/emergency/$token'
+      fullPath: '/emergency/$token'
+      preLoaderRoute: typeof EmergencyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -399,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  EmergencyTokenRoute: EmergencyTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
