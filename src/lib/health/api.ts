@@ -8,7 +8,9 @@ import { bandForScore } from "./drift";
 import type {
   Alert,
   CaseReview,
+  ReminderChannel,
   ReviewState,
+
   CheckSubmission,
   DriftBand,
   HealthCheck,
