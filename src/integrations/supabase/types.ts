@@ -22,6 +22,10 @@ export type Database = {
           id: string
           patient_id: string
           requires_review: boolean
+          review_note: string | null
+          review_state: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           severity: string
           title: string
         }
@@ -32,6 +36,10 @@ export type Database = {
           id?: string
           patient_id: string
           requires_review?: boolean
+          review_note?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: string
           title: string
         }
@@ -42,12 +50,64 @@ export type Database = {
           id?: string
           patient_id?: string
           requires_review?: boolean
+          review_note?: string | null
+          review_state?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: string
           title?: string
         }
         Relationships: [
           {
             foreignKeyName: "alerts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_reviews: {
+        Row: {
+          action: string
+          alert_id: string | null
+          created_at: string
+          id: string
+          note: string | null
+          patient_id: string
+          reviewer_id: string | null
+          reviewer_name: string | null
+        }
+        Insert: {
+          action?: string
+          alert_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          patient_id: string
+          reviewer_id?: string | null
+          reviewer_name?: string | null
+        }
+        Update: {
+          action?: string
+          alert_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          patient_id?: string
+          reviewer_id?: string | null
+          reviewer_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_reviews_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_reviews_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
@@ -161,30 +221,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          best_streak: number
           consent_given: boolean
+          consent_revoked_at: string | null
           created_at: string
           full_name: string | null
           id: string
           language: string
           linked_patient_id: string | null
+          reminder_enabled: boolean
+          reminder_time: string
           role: string
         }
         Insert: {
+          best_streak?: number
           consent_given?: boolean
+          consent_revoked_at?: string | null
           created_at?: string
           full_name?: string | null
           id: string
           language?: string
           linked_patient_id?: string | null
+          reminder_enabled?: boolean
+          reminder_time?: string
           role?: string
         }
         Update: {
+          best_streak?: number
           consent_given?: boolean
+          consent_revoked_at?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           language?: string
           linked_patient_id?: string | null
+          reminder_enabled?: boolean
+          reminder_time?: string
           role?: string
         }
         Relationships: []

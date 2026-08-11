@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/health/AppShell";
@@ -6,12 +7,21 @@ import { HealthDriftCard } from "@/components/health/HealthDriftCard";
 import { TrendChart } from "@/components/health/TrendChart";
 import { PatientTimeline } from "@/components/health/PatientTimeline";
 import { ReferralCard } from "@/components/health/ReferralCard";
+import { StreakCard } from "@/components/health/StreakCard";
+import { ReportDownload } from "@/components/health/ReportDownload";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { DEMO_PATIENT_ID, ensureProfile, getChecks, getPatient, listReferrals } from "@/lib/health/api";
+import {
+  DEMO_PATIENT_ID,
+  ensureProfile,
+  getChecks,
+  getPatient,
+  listReferrals,
+  saveBestStreak,
+} from "@/lib/health/api";
 import { buildBaseline } from "@/lib/health/drift";
 import { toSeries } from "@/lib/health/series";
-
+import { computeStreak, msUntilReminder } from "@/lib/health/streak";
 
 export const Route = createFileRoute("/_authenticated/patient")({
   head: () => ({
@@ -33,6 +43,23 @@ export const Route = createFileRoute("/_authenticated/patient")({
   }),
   component: PatientDashboard,
 });
+
+/** Oldest-first seven day grid of completed checks. */
+function buildWeek(dates: Set<string>) {
+  const out: { label: string; done: boolean; isToday: boolean }[] = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i -= 1) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push({
+      label: d.toLocaleDateString("en-IN", { weekday: "narrow" }),
+      done: dates.has(key),
+      isToday: i === 0,
+    });
+  }
+  return out;
+}
 
 function PatientDashboard() {
   const { user } = useAuth();
@@ -64,6 +91,33 @@ function PatientDashboard() {
   const checks = checksQuery.data ?? [];
   const latest = checks[0];
   const baseline = buildBaseline(checks.slice(1));
+  const profile = profileQuery.data;
+
+  const streak = useMemo(() => computeStreak(checks), [checks]);
+  const week = useMemo(
+    () => buildWeek(new Set(checks.map((c) => c.check_date.slice(0, 10)))),
+    [checks],
+  );
+
+  // Persist the best streak so it survives a missed day.
+  useEffect(() => {
+    if (!user || !profile) return;
+    if (streak.best > (profile.best_streak ?? 0)) void saveBestStreak(user.id, streak.best);
+  }, [user, profile, streak.best]);
+
+  // Demo-mode reminder: schedules an in-session nudge at the chosen time.
+  useEffect(() => {
+    if (!profile?.reminder_enabled || streak.checkedToday) return;
+    const delay = Math.min(msUntilReminder(profile.reminder_time), 2 ** 31 - 1);
+    const timer = window.setTimeout(() => {
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        new Notification("SwasthyaShadow", {
+          body: "Time for your two-minute daily check.",
+        });
+      }
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [profile?.reminder_enabled, profile?.reminder_time, streak.checkedToday]);
 
   if (profileQuery.isLoading || patientQuery.isLoading) {
     return (
@@ -95,19 +149,28 @@ function PatientDashboard() {
             : ""}
         </p>
 
-        <div className="surface-card grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-4 sm:p-5">
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-foreground">Today's check</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Voice, reaction time, activity and symptoms — about two minutes.
-            </p>
+        {!streak.checkedToday && (
+          <div className="surface-card grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-4 sm:p-5">
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-foreground">Today's check</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Voice, reaction time, activity and symptoms — about two minutes.
+              </p>
+            </div>
+            <Button asChild size="lg" className="shrink-0">
+              <Link to="/check">
+                <ClipboardCheck className="size-4" aria-hidden /> Start
+              </Link>
+            </Button>
           </div>
-          <Button asChild size="lg" className="shrink-0">
-            <Link to="/check">
-              <ClipboardCheck className="size-4" aria-hidden /> Start
-            </Link>
-          </Button>
-        </div>
+        )}
+
+        <StreakCard
+          streak={streak}
+          weekDays={week}
+          reminderEnabled={profile?.reminder_enabled ?? true}
+          reminderTime={profile?.reminder_time ?? "08:00"}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <TrendChart
@@ -142,6 +205,7 @@ function PatientDashboard() {
           />
         </div>
 
+        {patient && <ReportDownload patient={patient} checks={checks} />}
 
         <PatientTimeline checks={checks} />
 
@@ -160,7 +224,11 @@ function PatientDashboard() {
           <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
           <span className="min-w-0">
             Your data stays linked to your account and is only visible to you and the health workers
-            supporting your community. You can withdraw consent at any time.
+            supporting your community.{" "}
+            <Link to="/settings" className="font-semibold text-primary hover:underline">
+              See exactly what we collect or withdraw consent
+            </Link>
+            .
           </span>
         </p>
       </div>
