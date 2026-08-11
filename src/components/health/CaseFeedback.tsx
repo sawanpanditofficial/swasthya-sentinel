@@ -88,12 +88,15 @@ export function CaseFeedback({
   currentState = "open",
   pending = false,
   compact = false,
+  allowEscalate = true,
   onSubmit,
   className,
 }: {
   currentState?: ReviewState;
   pending?: boolean;
   compact?: boolean;
+  /** Hidden when the worker's assignment does not grant escalation rights. */
+  allowEscalate?: boolean;
   onSubmit: (action: ReviewAction, note: string) => void;
   className?: string;
 }) {
@@ -103,8 +106,10 @@ export function CaseFeedback({
 
   const isClosed = currentState === "closed";
   // A closed case must be reopened before any other decision can be recorded.
-  const available = ACTIONS.filter((a) =>
-    isClosed ? a.action === "reopened" : a.action !== "reopened" && a.action !== currentState,
+  const available = ACTIONS.filter(
+    (a) =>
+      (allowEscalate || a.action !== "escalated") &&
+      (isClosed ? a.action === "reopened" : a.action !== "reopened" && a.action !== currentState),
   );
   const noteRequired = active ? requiresResolutionNote(currentState, active) : false;
   const noteTooShort = note.trim().length < MIN_NOTE;
