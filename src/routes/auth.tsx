@@ -11,7 +11,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { ensureProfile } from "@/lib/health/api";
 import type { UserRole } from "@/lib/health/types";
 
+function safeNext(value: unknown): string {
+  // Only same-origin relative paths may be used as a post-sign-in target.
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : "";
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const next = safeNext(s["next"]);
+    return next ? { next } : {};
+  },
   head: () => ({
     meta: [
       { title: "Sign in — SwasthyaShadow Health Monitoring" },
@@ -40,6 +49,7 @@ const ROLES: { value: UserRole; label: string; hint: string }[] = [
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const { user, loading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [role, setRole] = useState<UserRole>("patient");
@@ -51,11 +61,15 @@ function AuthPage() {
 
   useEffect(() => {
     if (!user) return;
+    if (next) {
+      window.location.href = next;
+      return;
+    }
     (async () => {
       const profile = await ensureProfile(user.id, user.user_metadata?.["full_name"] as string | undefined);
       navigate({ to: profile.role === "patient" ? "/patient" : "/worker", replace: true });
     })().catch(() => navigate({ to: "/patient", replace: true }));
-  }, [user, navigate]);
+  }, [user, navigate, next]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +80,7 @@ function AuthPage() {
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: next ? window.location.origin + next : window.location.origin,
             data: { full_name: name.trim(), role },
           },
         });
@@ -88,7 +102,7 @@ function AuthPage() {
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: next ? window.location.origin + next : window.location.origin,
     });
     if (result.error) {
       toast.error("Google sign-in failed. Please try email instead.");
