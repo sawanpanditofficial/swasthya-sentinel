@@ -18,6 +18,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
 import { Route as AuthenticatedCheckRouteImport } from './routes/_authenticated/check'
 import { Route as AuthenticatedPatientRouteImport } from './routes/_authenticated/patient'
+import { Route as AuthenticatedResponderRouteImport } from './routes/_authenticated/responder'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedShadowRouteImport } from './routes/_authenticated/shadow'
 import { Route as AuthenticatedWorkerRouteImport } from './routes/_authenticated/worker'
@@ -71,6 +72,11 @@ const AuthenticatedPatientRoute = AuthenticatedPatientRouteImport.update({
   path: '/patient',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedResponderRoute = AuthenticatedResponderRouteImport.update({
+  id: '/responder',
+  path: '/responder',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/alerts': typeof AuthenticatedAlertsRoute
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
+  '/responder': typeof AuthenticatedResponderRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shadow': typeof AuthenticatedShadowRoute
   '/worker': typeof AuthenticatedWorkerRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/alerts': typeof AuthenticatedAlertsRoute
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
+  '/responder': typeof AuthenticatedResponderRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shadow': typeof AuthenticatedShadowRoute
   '/worker': typeof AuthenticatedWorkerRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
   '/_authenticated/check': typeof AuthenticatedCheckRoute
   '/_authenticated/patient': typeof AuthenticatedPatientRoute
+  '/_authenticated/responder': typeof AuthenticatedResponderRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shadow': typeof AuthenticatedShadowRoute
   '/_authenticated/worker': typeof AuthenticatedWorkerRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/check'
     | '/patient'
+    | '/responder'
     | '/settings'
     | '/shadow'
     | '/worker'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/check'
     | '/patient'
+    | '/responder'
     | '/settings'
     | '/shadow'
     | '/worker'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/_authenticated/alerts'
     | '/_authenticated/check'
     | '/_authenticated/patient'
+    | '/_authenticated/responder'
     | '/_authenticated/settings'
     | '/_authenticated/shadow'
     | '/_authenticated/worker'
@@ -281,6 +293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPatientRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/responder': {
+      id: '/_authenticated/responder'
+      path: '/responder'
+      fullPath: '/responder'
+      preLoaderRoute: typeof AuthenticatedResponderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -330,6 +349,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
   AuthenticatedCheckRoute: typeof AuthenticatedCheckRoute
   AuthenticatedPatientRoute: typeof AuthenticatedPatientRoute
+  AuthenticatedResponderRoute: typeof AuthenticatedResponderRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShadowRoute: typeof AuthenticatedShadowRoute
   AuthenticatedWorkerRoute: typeof AuthenticatedWorkerRoute
@@ -340,6 +360,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
   AuthenticatedCheckRoute: AuthenticatedCheckRoute,
   AuthenticatedPatientRoute: AuthenticatedPatientRoute,
+  AuthenticatedResponderRoute: AuthenticatedResponderRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShadowRoute: AuthenticatedShadowRoute,
   AuthenticatedWorkerRoute: AuthenticatedWorkerRoute,
