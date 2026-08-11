@@ -128,10 +128,11 @@ function Landing() {
                 <li key={b.band} className="surface-card p-4">
                   <p className="font-display text-lg font-bold text-foreground">{b.label}</p>
                   <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-                    Drift {b.min}–{b.max}
+                    Drift {b.range} · {b.hi}
                   </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{b.guidance}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{b.action}</p>
                 </li>
+
               ))}
             </ul>
           </div>
