@@ -229,6 +229,8 @@ export type Database = {
           id: string
           language: string
           linked_patient_id: string | null
+          reminder_channel: string
+          reminder_contact: string | null
           reminder_enabled: boolean
           reminder_time: string
           role: string
@@ -242,6 +244,8 @@ export type Database = {
           id: string
           language?: string
           linked_patient_id?: string | null
+          reminder_channel?: string
+          reminder_contact?: string | null
           reminder_enabled?: boolean
           reminder_time?: string
           role?: string
@@ -255,6 +259,8 @@ export type Database = {
           id?: string
           language?: string
           linked_patient_id?: string | null
+          reminder_channel?: string
+          reminder_contact?: string | null
           reminder_enabled?: boolean
           reminder_time?: string
           role?: string

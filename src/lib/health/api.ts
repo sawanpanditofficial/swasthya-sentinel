@@ -8,7 +8,9 @@ import { bandForScore } from "./drift";
 import type {
   Alert,
   CaseReview,
+  ReminderChannel,
   ReviewState,
+
   CheckSubmission,
   DriftBand,
   HealthCheck,
@@ -247,7 +249,12 @@ export async function recordCaseReview(input: ReviewInput): Promise<void> {
 
 export async function saveReminderSettings(
   userId: string,
-  patch: { reminder_enabled?: boolean; reminder_time?: string },
+  patch: {
+    reminder_enabled?: boolean;
+    reminder_time?: string;
+    reminder_channel?: ReminderChannel;
+    reminder_contact?: string | null;
+  },
 ): Promise<Profile> {
   return updateProfile(userId, patch as Partial<Profile>);
 }

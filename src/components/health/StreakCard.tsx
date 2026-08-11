@@ -2,7 +2,13 @@ import { Flame, BellRing, BellOff, CalendarCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatReminderTime, streakMessage, type StreakSummary } from "@/lib/health/streak";
+import {
+  formatReminderTime,
+  reminderChannelMeta,
+  streakMessage,
+  type StreakSummary,
+} from "@/lib/health/streak";
+import type { ReminderChannel } from "@/lib/health/types";
 
 /**
  * Daily-check adherence: streak, weekly grid and the reminder state.
@@ -12,6 +18,7 @@ export function StreakCard({
   weekDays,
   reminderEnabled,
   reminderTime,
+  reminderChannel = "in_app",
   className,
 }: {
   streak: StreakSummary;
@@ -19,6 +26,7 @@ export function StreakCard({
   weekDays: { label: string; done: boolean; isToday: boolean }[];
   reminderEnabled: boolean;
   reminderTime: string;
+  reminderChannel?: ReminderChannel;
   className?: string;
 }) {
   return (
@@ -69,7 +77,9 @@ export function StreakCard({
         {reminderEnabled ? (
           <>
             <BellRing className="size-3.5 shrink-0 text-primary" aria-hidden />
-            Reminder set for {formatReminderTime(reminderTime)} every day
+            Reminder set for {formatReminderTime(reminderTime)} every day via{" "}
+            {reminderChannelMeta(reminderChannel).label}
+            {!reminderChannelMeta(reminderChannel).live && " (simulated in demo mode)"}
           </>
         ) : (
           <>

@@ -60,7 +60,9 @@ export interface HealthCheck {
   created_at: string;
 }
 
-export type ReviewState = "open" | "reviewed" | "escalated" | "closed";
+export type ReviewState = "open" | "reviewed" | "escalated" | "closed" | "reopened";
+
+export type ReminderChannel = "in_app" | "email" | "sms" | "whatsapp";
 
 export interface Alert {
   id: string;
@@ -105,6 +107,8 @@ export interface Profile {
   language: string;
   reminder_enabled: boolean;
   reminder_time: string;
+  reminder_channel: ReminderChannel;
+  reminder_contact: string | null;
   consent_revoked_at: string | null;
   best_streak: number;
 }

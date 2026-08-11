@@ -3,7 +3,7 @@
  * Pure functions so they stay testable and free of database concerns.
  */
 
-import type { HealthCheck } from "./types";
+import type { HealthCheck, ReminderChannel } from "./types";
 
 export interface StreakSummary {
   /** Consecutive days ending today (or yesterday, if today is still pending). */
@@ -92,3 +92,71 @@ export function formatReminderTime(reminderTime: string): string {
 }
 
 export const REMINDER_TIME_OPTIONS = ["07:00", "08:00", "09:00", "12:00", "18:00", "20:00"];
+
+/**
+ * Reminder delivery channels. DEMO MODE: only the in-app nudge actually fires
+ * in this prototype — email/SMS/WhatsApp record the person's preference and
+ * show a simulated preview, so no message is ever sent to a real number.
+ */
+export const REMINDER_CHANNELS: {
+  value: ReminderChannel;
+  label: string;
+  hi: string;
+  hint: string;
+  contactLabel: string | null;
+  placeholder: string;
+  live: boolean;
+}[] = [
+  {
+    value: "in_app",
+    label: "In-app nudge",
+    hi: "ऐप में",
+    hint: "A card and browser notification while SwasthyaShadow is open. Works offline-first, costs nothing.",
+    contactLabel: null,
+    placeholder: "",
+    live: true,
+  },
+  {
+    value: "email",
+    label: "Email",
+    hi: "ईमेल",
+    hint: "A short daily reminder email. Simulated in demo mode — nothing is sent.",
+    contactLabel: "Email address",
+    placeholder: "name@example.com",
+    live: false,
+  },
+  {
+    value: "sms",
+    label: "SMS",
+    hi: "एसएमएस",
+    hint: "A plain text message for basic phones with no data pack. Simulated in demo mode.",
+    contactLabel: "Mobile number",
+    placeholder: "+91 98765 43210",
+    live: false,
+  },
+  {
+    value: "whatsapp",
+    label: "WhatsApp",
+    hi: "व्हाट्सएप",
+    hint: "A WhatsApp reminder in your chosen language. Simulated in demo mode.",
+    contactLabel: "WhatsApp number",
+    placeholder: "+91 98765 43210",
+    live: false,
+  },
+];
+
+export function reminderChannelMeta(channel: ReminderChannel) {
+  return REMINDER_CHANNELS.find((c) => c.value === channel) ?? REMINDER_CHANNELS[0]!;
+}
+
+/** Preview of the exact message a person would receive on that channel. */
+export function reminderPreview(channel: ReminderChannel, time: string): string {
+  const at = formatReminderTime(time);
+  if (channel === "email")
+    return `Subject: Your two-minute check · SwasthyaShadow — "It is ${at}. A quick voice, tap and symptom check keeps your baseline accurate."`;
+  if (channel === "sms")
+    return `SwasthyaShadow: Time for your 2-minute health check (${at}). Reply STOP to pause reminders.`;
+  if (channel === "whatsapp")
+    return `SwasthyaShadow · ${at}: Namaste! Your daily two-minute check is ready. Tap to open.`;
+  return `A card appears on your dashboard at ${at} while the app is open.`;
+}
