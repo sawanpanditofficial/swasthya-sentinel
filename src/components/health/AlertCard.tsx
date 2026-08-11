@@ -22,6 +22,8 @@ export function AlertCard({
   onAcknowledge,
   onReview,
   reviewPending = false,
+  allowEscalate = true,
+
 }: {
   alert: Alert;
   patient?: Patient | null;
