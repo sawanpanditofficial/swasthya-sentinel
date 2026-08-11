@@ -127,7 +127,7 @@ export function DisasterBoard({
                 <div className="mt-3 grid gap-2 sm:grid-cols-[12rem_1fr_auto] sm:items-center">
                   <Select
                     value={row.triage_status}
-                    disabled={busy}
+                    disabled={busy ?? false}
                     onValueChange={(v) => void onTriage(row.id, v as TriageStatus)}
                   >
                     <SelectTrigger aria-label={`Triage status for ${row.patient?.name ?? "person"}`}>
@@ -143,7 +143,7 @@ export function DisasterBoard({
                   </Select>
                   <Select
                     value={row.hospital_id ?? "none"}
-                    disabled={busy}
+                    disabled={busy ?? false}
                     onValueChange={(v) => void onAssignHospital(row.id, v === "none" ? null : v)}
                   >
                     <SelectTrigger aria-label="Assign hospital">
