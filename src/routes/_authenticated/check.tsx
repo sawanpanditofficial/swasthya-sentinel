@@ -10,7 +10,7 @@ import { SymptomForm, VitalsForm } from "@/components/health/CheckForms";
 import { HealthDriftCard } from "@/components/health/HealthDriftCard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { DEMO_PATIENT_ID, ensureProfile, getChecks, saveHealthCheck } from "@/lib/health/api";
+import { ensureProfile, getChecks, saveHealthCheck } from "@/lib/health/api";
 import { analyseCheck, bandForScore } from "@/lib/health/drift";
 import type {
   DriftBand,
@@ -63,11 +63,11 @@ function CheckFlow() {
     enabled: !!user,
     queryFn: () => ensureProfile(user!.id, user!.user_metadata?.["full_name"] as string | undefined),
   });
-  const patientId = profileQuery.data?.linked_patient_id ?? DEMO_PATIENT_ID;
+  const patientId = profileQuery.data?.linked_patient_id ?? null;
   const historyQuery = useQuery({
     queryKey: ["checks", patientId],
     enabled: !!patientId,
-    queryFn: () => getChecks(patientId, 30),
+    queryFn: () => getChecks(patientId!, 30),
   });
 
   const profile = profileQuery.data;
@@ -86,7 +86,7 @@ function CheckFlow() {
       // A paused signal is left out entirely rather than guessed, so the drift
       // score simply ignores it.
       const submission = {
-        patientId,
+        patientId: patientId!,
         voice: allowed.voice ? voice : null,
         reaction: allowed.reaction ? reaction : null,
         symptoms: allowed.symptoms ? symptoms : {},

@@ -13,7 +13,6 @@ import { WhyFlagged } from "@/components/health/WhyFlagged";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  DEMO_PATIENT_ID,
   ensureProfile,
   getChecks,
   getPatient,
@@ -71,22 +70,22 @@ function PatientDashboard() {
     queryFn: () => ensureProfile(user!.id, user!.user_metadata?.["full_name"] as string | undefined),
   });
 
-  const patientId = profileQuery.data?.linked_patient_id ?? DEMO_PATIENT_ID;
+  const patientId = profileQuery.data?.linked_patient_id ?? null;
 
   const patientQuery = useQuery({
     queryKey: ["patient", patientId],
     enabled: !!patientId,
-    queryFn: () => getPatient(patientId),
+    queryFn: () => getPatient(patientId!),
   });
   const checksQuery = useQuery({
     queryKey: ["checks", patientId],
     enabled: !!patientId,
-    queryFn: () => getChecks(patientId, 30),
+    queryFn: () => getChecks(patientId!, 30),
   });
   const referralsQuery = useQuery({
     queryKey: ["referrals", patientId],
     enabled: !!patientId,
-    queryFn: () => listReferrals(patientId),
+    queryFn: () => listReferrals(patientId!),
   });
 
   const checks = checksQuery.data ?? [];
