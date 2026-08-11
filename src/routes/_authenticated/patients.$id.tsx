@@ -8,7 +8,10 @@ import { HealthDriftCard } from "@/components/health/HealthDriftCard";
 import { TrendChart } from "@/components/health/TrendChart";
 import { PatientTimeline } from "@/components/health/PatientTimeline";
 import { ReferralCard } from "@/components/health/ReferralCard";
-import { CaseFeedback, ReviewLog } from "@/components/health/CaseFeedback";
+import { CaseFeedback } from "@/components/health/CaseFeedback";
+import { CaseTimeline } from "@/components/health/CaseTimeline";
+import { WhyFlagged } from "@/components/health/WhyFlagged";
+
 import { ReportDownload } from "@/components/health/ReportDownload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
