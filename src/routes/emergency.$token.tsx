@@ -58,10 +58,11 @@ function EmergencyTokenPage() {
       try {
         const result = await open({ data: { token } });
         if (cancelled) return;
-        if (!result) throw new Error("not found");
-        setBundle(result);
+        if (!result.ok) throw new Error(result.reason);
+        setBundle(result.bundle);
         setState("ready");
       } catch {
+
         // No network or a rejected token: fall back to a copy saved on this device.
         const cached = readOfflineCopy(`token.${token}`);
         if (cancelled) return;
