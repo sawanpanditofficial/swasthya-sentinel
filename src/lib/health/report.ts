@@ -106,8 +106,14 @@ function drawChart(
   doc.setFontSize(6.5);
   doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
   const unit = opts.unit ?? "";
-  doc.text(`low ${min}${unit}`, plotX, y + h - 2.5);
-  doc.text(`high ${max}${unit}`, plotX + plotW, y + h - 2.5, { align: "right" });
+  const fmt = (n: number) =>
+    Number.isInteger(n)
+      ? n.toLocaleString("en-IN")
+      : Math.abs(n) < 1
+        ? n.toFixed(3)
+        : n.toFixed(1);
+  doc.text(`low ${fmt(min)}${unit}`, plotX, y + h - 2.5);
+  doc.text(`high ${fmt(max)}${unit}`, plotX + plotW, y + h - 2.5, { align: "right" });
 }
 
 function heading(doc: jsPDF, text: string, y: number): number {
