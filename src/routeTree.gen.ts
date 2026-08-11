@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedCheckRouteImport } from './routes/_authenticated/check'
 import { Route as AuthenticatedPatientRouteImport } from './routes/_authenticated/patient'
 
 const IndexRoute = IndexRouteImport.update({
@@ -28,6 +29,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCheckRoute = AuthenticatedCheckRouteImport.update({
+  id: '/check',
+  path: '/check',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPatientRoute = AuthenticatedPatientRouteImport.update({
   id: '/patient',
   path: '/patient',
@@ -37,11 +43,13 @@ const AuthenticatedPatientRoute = AuthenticatedPatientRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
 }
 export interface FileRoutesById {
@@ -49,14 +57,21 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/check': typeof AuthenticatedCheckRoute
   '/_authenticated/patient': typeof AuthenticatedPatientRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/patient'
+  fullPaths: '/' | '/auth' | '/check' | '/patient'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/patient'
-  id: '__root__' | '/' | '/_authenticated' | '/auth' | '/_authenticated/patient'
+  to: '/' | '/auth' | '/check' | '/patient'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/check'
+    | '/_authenticated/patient'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/check': {
+      id: '/_authenticated/check'
+      path: '/check'
+      fullPath: '/check'
+      preLoaderRoute: typeof AuthenticatedCheckRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/patient': {
       id: '/_authenticated/patient'
       path: '/patient'
@@ -99,10 +121,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCheckRoute: typeof AuthenticatedCheckRoute
   AuthenticatedPatientRoute: typeof AuthenticatedPatientRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCheckRoute: AuthenticatedCheckRoute,
   AuthenticatedPatientRoute: AuthenticatedPatientRoute,
 }
 
