@@ -84,9 +84,14 @@ function PatientDashboard() {
           score={patient?.drift_score ?? 0}
           band={patient?.status ?? "stable"}
           deviations={latest?.deviations ?? []}
-          lastCheckAt={patient?.last_check_at ?? null}
-          baselineDays={baseline.sampleSize}
         />
+        <p className="text-xs text-muted-foreground">
+          Baseline built from your last {baseline.samples} check
+          {baseline.samples === 1 ? "" : "s"}
+          {patient?.last_check_at
+            ? ` · last check ${new Date(patient.last_check_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}`
+            : ""}
+        </p>
 
         <div className="surface-card grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-4 sm:p-5">
           <div className="min-w-0">
@@ -104,31 +109,37 @@ function PatientDashboard() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <TrendChart
-            checks={checks}
-            metric="drift_score"
-            label="Health Drift"
-            description="Deviation from your personal baseline"
+            title="Health Drift"
+            subtitle="Deviation from your personal baseline"
+            data={toSeries(checks, "drift_score")}
+            bands
           />
           <TrendChart
-            checks={checks}
-            metric="reaction_median_ms"
-            label="Reaction time"
-            unit="ms"
-            description="Median tap response"
+            title="Reaction time"
+            subtitle="Median tap response"
+            unit=" ms"
+            data={toSeries(checks, "reaction_median_ms")}
+            baseline={baseline.reactionMedianMs}
+            color="var(--color-chart-2)"
+            variant="line"
           />
           <TrendChart
-            checks={checks}
-            metric="voice_jitter"
-            label="Voice stability index"
-            description="Simulated acoustic variability"
+            title="Voice stability index"
+            subtitle="Simulated acoustic variability"
+            data={toSeries(checks, "voice_jitter")}
+            baseline={baseline.voiceJitter}
+            color="var(--color-chart-3)"
+            variant="line"
           />
           <TrendChart
-            checks={checks}
-            metric="activity_steps"
-            label="Daily steps"
-            description="Self-reported or device activity"
+            title="Daily steps"
+            subtitle="Self-reported or device activity"
+            data={toSeries(checks, "activity_steps")}
+            baseline={baseline.activitySteps}
+            color="var(--color-chart-4)"
           />
         </div>
+
 
         <PatientTimeline checks={checks} />
 
