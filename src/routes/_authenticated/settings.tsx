@@ -234,7 +234,78 @@ function SettingsPage() {
                 </button>
               ))}
             </div>
+
+            <legend className="mt-5 text-xs font-semibold text-muted-foreground">
+              How should we reach you?
+            </legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {REMINDER_CHANNELS.map((c) => {
+                const selected = (profile?.reminder_channel ?? "in_app") === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => reminders.mutate({ reminder_channel: c.value })}
+                    className={cn(
+                      "rounded-xl border p-3 text-left transition-colors disabled:opacity-50",
+                      selected
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                        : "border-border bg-card hover:border-primary/40",
+                    )}
+                  >
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground">
+                        {c.label} · {c.hi}
+                      </span>
+                      {!c.live && (
+                        <span className="rounded-full bg-monitor-soft px-2 py-0.5 text-[10px] font-bold tracking-wider text-monitor uppercase">
+                          Demo
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                      {c.hint}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {channelMeta.contactLabel && (
+              <div className="mt-3">
+                <Label htmlFor="reminder-contact" className="text-xs font-semibold">
+                  {channelMeta.contactLabel}
+                </Label>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  <Input
+                    id="reminder-contact"
+                    className="h-11 min-w-[12rem] flex-1"
+                    placeholder={channelMeta.placeholder}
+                    inputMode={channelMeta.value === "email" ? "email" : "tel"}
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    className="h-11"
+                    disabled={reminders.isPending || contact.trim() === (profile?.reminder_contact ?? "")}
+                    onClick={() => reminders.mutate({ reminder_contact: contact.trim() || null })}
+                  >
+                    Save contact
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <p className="mt-3 rounded-lg border border-border bg-secondary/40 p-3 text-xs leading-relaxed text-muted-foreground">
+              <span className="font-semibold text-foreground/85">Preview:</span>{" "}
+              {reminderPreview(profile?.reminder_channel ?? "in_app", profile?.reminder_time ?? "08:00")}
+              {!channelMeta.live &&
+                " In this prototype nothing is actually sent — the preference is stored so a real gateway can be connected later."}
+            </p>
           </fieldset>
+
         </section>
 
         {/* Data collected */}
