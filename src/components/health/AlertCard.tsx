@@ -1,5 +1,6 @@
 import { AlertTriangle, BellRing, Check } from "lucide-react";
-import type { Alert, Patient } from "@/lib/health/types";
+import type { Alert, Patient, ReviewState } from "@/lib/health/types";
+import { CaseFeedback, ReviewStatePill } from "./CaseFeedback";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -19,10 +20,14 @@ export function AlertCard({
   alert,
   patient,
   onAcknowledge,
+  onReview,
+  reviewPending = false,
 }: {
   alert: Alert;
   patient?: Patient | null;
   onAcknowledge?: (id: string) => void;
+  onReview?: (action: Exclude<ReviewState, "open">, note: string) => void;
+  reviewPending?: boolean;
 }) {
   const Icon = alert.severity === "high" ? AlertTriangle : BellRing;
   return (
@@ -41,6 +46,7 @@ export function AlertCard({
             <span className="shrink-0 rounded-full bg-card px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">
               {alert.severity}
             </span>
+            <ReviewStatePill state={alert.review_state ?? "open"} />
           </div>
           {patient && (
             <p className="mt-0.5 text-xs font-medium text-foreground/80">
@@ -60,7 +66,7 @@ export function AlertCard({
                 Human clinical review recommended
               </span>
             )}
-            {onAcknowledge && !alert.acknowledged && (
+            {onAcknowledge && !alert.acknowledged && !onReview && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -70,10 +76,23 @@ export function AlertCard({
                 <Check className="size-3.5" aria-hidden /> Acknowledge
               </Button>
             )}
-            {alert.acknowledged && (
+            {alert.acknowledged && !onReview && (
               <span className="ml-auto text-[11px] font-semibold text-stable">Acknowledged</span>
             )}
           </div>
+          {alert.review_note && (
+            <p className="mt-2 rounded-lg border border-border bg-card/70 p-2.5 text-xs text-foreground/85">
+              <span className="font-semibold">Reviewer note:</span> {alert.review_note}
+            </p>
+          )}
+          {onReview && (
+            <CaseFeedback
+              className="mt-3 border-t border-border/70 pt-3"
+              currentState={alert.review_state ?? "open"}
+              pending={reviewPending}
+              onSubmit={onReview}
+            />
+          )}
         </div>
       </div>
     </article>
