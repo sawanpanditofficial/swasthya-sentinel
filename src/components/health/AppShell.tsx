@@ -1,5 +1,14 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { Activity, BellRing, ClipboardCheck, LogOut, ShieldCheck, Users } from "lucide-react";
+import {
+  Activity,
+  BellRing,
+  ClipboardCheck,
+  LifeBuoy,
+  LogOut,
+  ShieldCheck,
+  Siren,
+  Users,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { ReactNode } from "react";
@@ -9,19 +18,25 @@ const navByRole: Record<UserRole, { to: string; label: string; icon: typeof Acti
   patient: [
     { to: "/patient", label: "My health", icon: Activity },
     { to: "/check", label: "Daily check", icon: ClipboardCheck },
+    { to: "/shadow", label: "Emergency", icon: Siren },
     { to: "/settings", label: "Privacy", icon: ShieldCheck },
   ],
   asha: [
     { to: "/worker", label: "Community", icon: Users },
     { to: "/alerts", label: "Alerts", icon: BellRing },
+    { to: "/responder", label: "Emergency", icon: Siren },
+    { to: "/command", label: "Disaster", icon: LifeBuoy },
     { to: "/settings", label: "Privacy", icon: ShieldCheck },
   ],
   doctor: [
     { to: "/worker", label: "Community", icon: Users },
     { to: "/alerts", label: "Alerts", icon: BellRing },
+    { to: "/responder", label: "Emergency", icon: Siren },
+    { to: "/command", label: "Disaster", icon: LifeBuoy },
     { to: "/settings", label: "Privacy", icon: ShieldCheck },
   ],
 };
+
 
 export function AppShell({
   role,
