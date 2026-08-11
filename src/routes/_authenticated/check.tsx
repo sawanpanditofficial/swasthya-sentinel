@@ -11,7 +11,7 @@ import { HealthDriftCard } from "@/components/health/HealthDriftCard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { DEMO_PATIENT_ID, ensureProfile, getChecks, saveHealthCheck } from "@/lib/health/api";
-import { analyseCheck, bandForScore, buildBaseline } from "@/lib/health/drift";
+import { analyseCheck, bandForScore } from "@/lib/health/drift";
 import type {
   DriftBand,
   ReactionResult,
