@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
 import { Route as AuthenticatedCheckRouteImport } from './routes/_authenticated/check'
 import { Route as AuthenticatedPatientRouteImport } from './routes/_authenticated/patient'
 import { Route as AuthenticatedWorkerRouteImport } from './routes/_authenticated/worker'
@@ -29,6 +30,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAlertsRoute = AuthenticatedAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCheckRoute = AuthenticatedCheckRouteImport.update({
   id: '/check',
@@ -49,6 +55,7 @@ const AuthenticatedWorkerRoute = AuthenticatedWorkerRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
   '/worker': typeof AuthenticatedWorkerRoute
@@ -56,6 +63,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
   '/worker': typeof AuthenticatedWorkerRoute
@@ -65,20 +73,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
   '/_authenticated/check': typeof AuthenticatedCheckRoute
   '/_authenticated/patient': typeof AuthenticatedPatientRoute
   '/_authenticated/worker': typeof AuthenticatedWorkerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/check' | '/patient' | '/worker'
+  fullPaths: '/' | '/auth' | '/alerts' | '/check' | '/patient' | '/worker'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/check' | '/patient' | '/worker'
+  to: '/' | '/auth' | '/alerts' | '/check' | '/patient' | '/worker'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/alerts'
     | '/_authenticated/check'
     | '/_authenticated/patient'
     | '/_authenticated/worker'
@@ -113,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/alerts': {
+      id: '/_authenticated/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AuthenticatedAlertsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/check': {
       id: '/_authenticated/check'
       path: '/check'
@@ -138,12 +155,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
   AuthenticatedCheckRoute: typeof AuthenticatedCheckRoute
   AuthenticatedPatientRoute: typeof AuthenticatedPatientRoute
   AuthenticatedWorkerRoute: typeof AuthenticatedWorkerRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
   AuthenticatedCheckRoute: AuthenticatedCheckRoute,
   AuthenticatedPatientRoute: AuthenticatedPatientRoute,
   AuthenticatedWorkerRoute: AuthenticatedWorkerRoute,
