@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
@@ -91,6 +91,21 @@ function CheckFlow() {
       title="Daily health check"
       subtitle="Each signal is compared only with your own past readings."
     >
+      {profileQuery.data && !profileQuery.data.consent_given && (
+        <section className="surface-card border-critical/50 bg-critical-soft/40 p-5" aria-label="Consent required">
+          <h2 className="text-sm font-semibold text-foreground">Monitoring is paused</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You withdrew consent, so no new checks are recorded. Restore consent whenever you are
+            ready — your past entries are untouched.
+          </p>
+          <Button asChild className="mt-4">
+            <Link to="/settings">Open consent & privacy</Link>
+          </Button>
+        </section>
+      )}
+
+      {(profileQuery.data?.consent_given ?? true) && (
+      <>
       <ol className="mb-6 flex items-center gap-1.5" aria-label="Progress">
         {STEPS.map((label, i) => (
           <li key={label} className="min-w-0 flex-1">
@@ -157,6 +172,9 @@ function CheckFlow() {
           )}
         </div>
       )}
+      </>
+      )}
     </AppShell>
   );
 }
+

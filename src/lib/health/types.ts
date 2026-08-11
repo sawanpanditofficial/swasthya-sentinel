@@ -60,6 +60,8 @@ export interface HealthCheck {
   created_at: string;
 }
 
+export type ReviewState = "open" | "reviewed" | "escalated" | "closed";
+
 export interface Alert {
   id: string;
   patient_id: string;
@@ -68,6 +70,19 @@ export interface Alert {
   body: string | null;
   requires_review: boolean;
   acknowledged: boolean;
+  review_state: ReviewState;
+  review_note: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export interface CaseReview {
+  id: string;
+  patient_id: string;
+  alert_id: string | null;
+  action: ReviewState;
+  note: string | null;
+  reviewer_name: string | null;
   created_at: string;
 }
 
@@ -88,7 +103,12 @@ export interface Profile {
   linked_patient_id: string | null;
   consent_given: boolean;
   language: string;
+  reminder_enabled: boolean;
+  reminder_time: string;
+  consent_revoked_at: string | null;
+  best_streak: number;
 }
+
 
 export interface VoiceSample {
   durationSec: number;
