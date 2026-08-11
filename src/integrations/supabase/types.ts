@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          actor_org: string | null
+          actor_role: string
+          created_at: string
+          detail: string | null
+          id: string
+          patient_id: string
+          scope: string
+          via: string
+        }
+        Insert: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_org?: string | null
+          actor_role?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          patient_id: string
+          scope?: string
+          via?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_org?: string | null
+          actor_role?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          patient_id?: string
+          scope?: string
+          via?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alerts: {
         Row: {
           acknowledged: boolean
@@ -60,6 +110,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "alerts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      allergies: {
+        Row: {
+          created_at: string
+          id: string
+          patient_id: string
+          reaction: string | null
+          severity: string
+          source: string
+          substance: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          patient_id: string
+          reaction?: string | null
+          severity?: string
+          source?: string
+          substance: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          patient_id?: string
+          reaction?: string | null
+          severity?: string
+          source?: string
+          substance?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allergies_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
@@ -184,6 +272,180 @@ export type Database = {
         }
         Relationships: []
       }
+      disaster_events: {
+        Row: {
+          created_at: string
+          id: string
+          is_demo: boolean
+          kind: string
+          name: string
+          note: string | null
+          region: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          kind?: string
+          name: string
+          note?: string | null
+          region?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          kind?: string
+          name?: string
+          note?: string | null
+          region?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      emergency_access_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          label: string | null
+          patient_id: string
+          revoked: boolean
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          patient_id: string
+          revoked?: boolean
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          patient_id?: string
+          revoked?: boolean
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_access_tokens_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          patient_id: string
+          phone: string
+          priority: number
+          relationship: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          patient_id: string
+          phone: string
+          priority?: number
+          relationship?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          patient_id?: string
+          phone?: string
+          priority?: number
+          relationship?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_contacts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_profiles: {
+        Row: {
+          address: string | null
+          ai_risk_flags: Json
+          ai_summary: string | null
+          ai_summary_at: string | null
+          blood_group: string | null
+          created_at: string
+          date_of_birth: string | null
+          emergency_code: string
+          gender: string | null
+          id: string
+          offline_enabled: boolean
+          patient_id: string
+          risk_level: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          ai_risk_flags?: Json
+          ai_summary?: string | null
+          ai_summary_at?: string | null
+          blood_group?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_code?: string
+          gender?: string | null
+          id?: string
+          offline_enabled?: boolean
+          patient_id: string
+          risk_level?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          ai_risk_flags?: Json
+          ai_summary?: string | null
+          ai_summary_at?: string | null
+          blood_group?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_code?: string
+          gender?: string | null
+          id?: string
+          offline_enabled?: boolean
+          patient_id?: string
+          risk_level?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_profiles_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: true
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_checks: {
         Row: {
           activity_steps: number | null
@@ -246,6 +508,238 @@ export type Database = {
           },
         ]
       }
+      hospitals: {
+        Row: {
+          beds_available: number
+          beds_total: number
+          created_at: string
+          district: string | null
+          has_icu: boolean
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          beds_available?: number
+          beds_total?: number
+          created_at?: string
+          district?: string | null
+          has_icu?: boolean
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          beds_available?: number
+          beds_total?: number
+          created_at?: string
+          district?: string | null
+          has_icu?: boolean
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medical_conditions: {
+        Row: {
+          created_at: string
+          diagnosed_on: string | null
+          id: string
+          name: string
+          notes: string | null
+          patient_id: string
+          severity: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosed_on?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          patient_id: string
+          severity?: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          diagnosed_on?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          severity?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_conditions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_documents: {
+        Row: {
+          created_at: string
+          extract_error: string | null
+          extracted: Json
+          file_name: string
+          id: string
+          mime_type: string | null
+          patient_id: string
+          status: string
+          storage_path: string | null
+        }
+        Insert: {
+          created_at?: string
+          extract_error?: string | null
+          extracted?: Json
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          patient_id: string
+          status?: string
+          storage_path?: string | null
+        }
+        Update: {
+          created_at?: string
+          extract_error?: string | null
+          extracted?: Json
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          patient_id?: string
+          status?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medications: {
+        Row: {
+          active: boolean
+          created_at: string
+          dosage: string | null
+          frequency: string | null
+          id: string
+          name: string
+          patient_id: string
+          source: string
+          started_on: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dosage?: string | null
+          frequency?: string | null
+          id?: string
+          name: string
+          patient_id: string
+          source?: string
+          started_on?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dosage?: string | null
+          frequency?: string | null
+          id?: string
+          name?: string
+          patient_id?: string
+          source?: string
+          started_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_disaster_status: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          disaster_id: string
+          hospital_id: string | null
+          id: string
+          note: string | null
+          patient_id: string
+          risk_level: string
+          triage_status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          disaster_id: string
+          hospital_id?: string | null
+          id?: string
+          note?: string | null
+          patient_id: string
+          risk_level?: string
+          triage_status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          disaster_id?: string
+          hospital_id?: string | null
+          id?: string
+          note?: string | null
+          patient_id?: string
+          risk_level?: string
+          triage_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_disaster_status_disaster_id_fkey"
+            columns: ["disaster_id"]
+            isOneToOne: false
+            referencedRelation: "disaster_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_disaster_status_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_disaster_status_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           age: number | null
@@ -254,6 +748,7 @@ export type Database = {
           drift_score: number
           id: string
           is_demo: boolean
+          is_seed: boolean
           last_check_at: string | null
           name: string
           sex: string | null
@@ -267,6 +762,7 @@ export type Database = {
           drift_score?: number
           id?: string
           is_demo?: boolean
+          is_seed?: boolean
           last_check_at?: string | null
           name: string
           sex?: string | null
@@ -280,6 +776,7 @@ export type Database = {
           drift_score?: number
           id?: string
           is_demo?: boolean
+          is_seed?: boolean
           last_check_at?: string | null
           name?: string
           sex?: string | null
@@ -395,6 +892,68 @@ export type Database = {
           },
         ]
       }
+      surgeries: {
+        Row: {
+          created_at: string
+          hospital: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          performed_on: string | null
+          procedure: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          hospital?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          performed_on?: string | null
+          procedure: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          hospital?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          performed_on?: string | null
+          procedure?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgeries_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       worker_assignments: {
         Row: {
           can_escalate: boolean
@@ -437,6 +996,10 @@ export type Database = {
         Args: { _patient_id: string; _user_id: string }
         Returns: boolean
       }
+      can_read_shadow: {
+        Args: { _patient_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_review_patient: {
         Args: { _patient_id: string; _user_id: string }
         Returns: boolean
@@ -445,9 +1008,28 @@ export type Database = {
         Args: { _patient_id: string; _user_id: string }
         Returns: boolean
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_emergency_staff: { Args: { _user_id: string }; Returns: boolean }
+      owns_patient: {
+        Args: { _patient_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "patient"
+        | "asha"
+        | "doctor"
+        | "responder"
+        | "hospital"
+        | "coordinator"
+        | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -574,6 +1156,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "patient",
+        "asha",
+        "doctor",
+        "responder",
+        "hospital",
+        "coordinator",
+        "admin",
+      ],
+    },
   },
 } as const
