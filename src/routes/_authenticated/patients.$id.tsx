@@ -176,11 +176,13 @@ function PatientDetail() {
 
         {patient && <ReportDownload patient={patient} checks={checks} />}
 
+        {checks[0] && <WhyFlagged check={checks[0]} history={checks} defaultOpen />}
+
         <section className="surface-card p-4 sm:p-5" aria-label="Reviewer decision">
           <h2 className="text-base font-semibold text-foreground">Act on this deviation</h2>
           <p className="mt-0.5 mb-3 text-xs text-muted-foreground">
             Your decision is logged with your name and stays on the record. Escalating also raises a
-            referral so the case reaches a facility queue.
+            referral so the case reaches a facility queue. Changing a decided case needs a resolution note.
           </p>
           <CaseFeedback
             currentState={(reviewsQuery.data?.[0]?.action ?? "open") as ReviewState}
@@ -189,7 +191,8 @@ function PatientDetail() {
           />
         </section>
 
-        {reviewsQuery.data && <ReviewLog reviews={reviewsQuery.data} />}
+        <CaseTimeline reviews={reviewsQuery.data ?? []} />
+
 
         <PatientTimeline checks={checks} />
 
