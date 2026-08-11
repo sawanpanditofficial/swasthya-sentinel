@@ -22,13 +22,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AppShell } from "@/components/health/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { ensureProfile, saveReminderSettings, setConsent } from "@/lib/health/api";
 import { DRIFT_BANDS, DRIFT_DISCLAIMER } from "@/lib/health/drift";
-import { REMINDER_TIME_OPTIONS, formatReminderTime } from "@/lib/health/streak";
+import {
+  REMINDER_CHANNELS,
+  REMINDER_TIME_OPTIONS,
+  formatReminderTime,
+  reminderChannelMeta,
+  reminderPreview,
+} from "@/lib/health/streak";
+import type { ReminderChannel } from "@/lib/health/types";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
