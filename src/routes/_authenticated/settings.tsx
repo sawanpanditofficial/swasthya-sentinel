@@ -156,61 +156,9 @@ function SettingsPage() {
       subtitle="What we collect, how the prototype decides something looks unusual, and how to stop it."
     >
       <div className="space-y-6">
-        {/* Consent state */}
-        <section
-          className={cn(
-            "surface-card p-4 sm:p-5",
-            !consentGiven && "border-critical/50 bg-critical-soft/40",
-          )}
-          aria-label="Consent status"
-        >
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-            <div className="min-w-0">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                {consentGiven ? (
-                  <ShieldCheck className="size-4 shrink-0 text-stable" aria-hidden />
-                ) : (
-                  <ShieldOff className="size-4 shrink-0 text-critical" aria-hidden />
-                )}
-                {consentGiven ? "Consent active" : "Consent withdrawn"}
-              </h2>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {consentGiven
-                  ? "You have agreed to record daily checks and to let the ASHA worker supporting your village see deviation signals. You can withdraw this at any moment, without giving a reason, and nothing else about your care changes."
-                  : `Monitoring is paused. No new checks, scores or alerts are created. Your past entries stay visible to you until you ask for deletion. Withdrawn ${profile?.consent_revoked_at ? new Date(profile.consent_revoked_at).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "recently"}.`}
-              </p>
-            </div>
-            {consentGiven ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="shrink-0">
-                    Withdraw
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Withdraw consent?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      New checks, drift scores and alerts stop immediately, and your case is removed
-                      from the worker's priority queue. Your existing entries remain visible to you
-                      and can be deleted on request. You can turn consent back on whenever you want.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Keep monitoring</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => consent.mutate(false)}>
-                      Withdraw consent
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : (
-              <Button size="sm" className="shrink-0" onClick={() => consent.mutate(true)}>
-                Restore consent
-              </Button>
-            )}
-          </div>
-        </section>
+        {/* Consent centre: per-signal consent, pause status, guardian and history */}
+        {profile && <ConsentCenter profile={profile} />}
+
 
         {/* Reminders */}
         <section className="surface-card p-4 sm:p-5" aria-label="Daily reminders">
