@@ -5,30 +5,19 @@ import {
   Database,
   Loader2,
   Lock,
-  ShieldOff,
-  ShieldCheck,
   SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AppShell } from "@/components/health/AppShell";
+import { ConsentCenter } from "@/components/health/ConsentCenter";
+import { DeliveryHistory } from "@/components/health/DeliveryHistory";
 import { useAuth } from "@/hooks/useAuth";
-import { ensureProfile, saveReminderSettings, setConsent } from "@/lib/health/api";
+import { ensureProfile, saveReminderSettings } from "@/lib/health/api";
 import { DRIFT_BANDS, DRIFT_DISCLAIMER } from "@/lib/health/drift";
 import {
   REMINDER_CHANNELS,
@@ -126,18 +115,6 @@ function SettingsPage() {
   });
 
 
-  const consent = useMutation({
-    mutationFn: (next: boolean) => setConsent(user!.id, next),
-    onSuccess: (_d, next) => {
-      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
-      toast.success(
-        next
-          ? "Consent restored. Monitoring has resumed."
-          : "Consent withdrawn. New checks and alerts are paused.",
-      );
-    },
-    onError: () => toast.error("Could not update consent."),
-  });
 
   if (profileQuery.isLoading) {
     return (
@@ -146,8 +123,6 @@ function SettingsPage() {
       </div>
     );
   }
-
-  const consentGiven = profile?.consent_given ?? true;
 
   return (
     <AppShell
@@ -275,8 +250,10 @@ function SettingsPage() {
                 " In this prototype nothing is actually sent — the preference is stored so a real gateway can be connected later."}
             </p>
           </fieldset>
-
         </section>
+
+        {/* Delivery attempts */}
+        {profile && <DeliveryHistory profile={profile} />}
 
         {/* Data collected */}
         <section className="surface-card p-4 sm:p-5" aria-label="Data collected">
