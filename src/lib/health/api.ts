@@ -8,8 +8,13 @@ import { bandForScore } from "./drift";
 import type {
   Alert,
   CaseReview,
+  ConsentEvent,
+  ConsentScope,
+  DeliveryAttempt,
+  DeliveryStatus,
   ReminderChannel,
   ReviewState,
+  WorkerAssignment,
 
   CheckSubmission,
   DriftBand,
@@ -22,7 +27,7 @@ import type { DriftAnalysis } from "./drift";
 
 /** Demo persona used when a citizen account has no linked record yet. */
 const PROFILE_FIELDS =
-  "id, full_name, role, linked_patient_id, consent_given, language, reminder_enabled, reminder_time, reminder_channel, reminder_contact, consent_revoked_at, best_streak";
+  "id, full_name, role, linked_patient_id, consent_given, language, reminder_enabled, reminder_time, reminder_channel, reminder_contact, consent_revoked_at, best_streak, consent_voice, consent_reaction, consent_activity, consent_symptoms, consent_vitals, guardian_name, guardian_relation";
 
 export const DEMO_PATIENT_ID = "a0000000-0000-4000-8000-000000000001";
 export const DEMO_HIGH_PRIORITY_ID = "a0000001-0000-4000-8000-000000000001";
@@ -269,4 +274,141 @@ export async function setConsent(userId: string, consent: boolean): Promise<Prof
     consent_given: consent,
     consent_revoked_at: consent ? null : new Date().toISOString(),
   } as Partial<Profile>);
+}
+
+/* ---------- Assignment-based scoping (village coverage + grants) ---------- */
+
+export async function listAssignments(workerId: string): Promise<WorkerAssignment[]> {
+  const { data, error } = await supabase
+    .from("worker_assignments")
+    .select("id, worker_id, village, can_review, can_escalate, note, created_at")
+    .eq("worker_id", workerId)
+    .order("village", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as WorkerAssignment[];
+}
+
+/** Grants or updates coverage of one village for a worker. */
+export async function upsertAssignment(
+  workerId: string,
+  village: string,
+  grants: { can_review: boolean; can_escalate: boolean },
+): Promise<void> {
+  const { error } = await supabase
+    .from("worker_assignments")
+    .upsert(
+      { worker_id: workerId, village, can_review: grants.can_review, can_escalate: grants.can_escalate },
+      { onConflict: "worker_id,village" },
+    );
+  if (error) throw error;
+}
+
+export async function removeAssignment(id: string): Promise<void> {
+  const { error } = await supabase.from("worker_assignments").delete().eq("id", id);
+  if (error) throw error;
+}
+
+/* ---------- Reminder delivery attempt history ---------- */
+
+export async function listDeliveryAttempts(
+  userId: string,
+  limit = 25,
+): Promise<DeliveryAttempt[]> {
+  const { data, error } = await supabase
+    .from("delivery_attempts")
+    .select("id, user_id, channel, contact, kind, status, message, error, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as unknown as DeliveryAttempt[];
+}
+
+export async function logDeliveryAttempt(input: {
+  userId: string;
+  channel: ReminderChannel;
+  contact?: string | null;
+  kind: DeliveryAttempt["kind"];
+  status: DeliveryStatus;
+  message?: string | null;
+  error?: string | null;
+}): Promise<DeliveryAttempt> {
+  const { data, error } = await supabase
+    .from("delivery_attempts")
+    .insert({
+      user_id: input.userId,
+      channel: input.channel,
+      contact: input.contact ?? null,
+      kind: input.kind,
+      status: input.status,
+      message: input.message ?? null,
+      error: input.error ?? null,
+    })
+    .select("id, user_id, channel, contact, kind, status, message, error, created_at")
+    .single();
+  if (error) throw error;
+  return data as unknown as DeliveryAttempt;
+}
+
+/* ---------- Consent centre ---------- */
+
+export async function listConsentEvents(profileId: string, limit = 30): Promise<ConsentEvent[]> {
+  const { data, error } = await supabase
+    .from("consent_events")
+    .select("id, profile_id, scope, granted, actor, actor_name, note, created_at")
+    .eq("profile_id", profileId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as unknown as ConsentEvent[];
+}
+
+const SCOPE_FIELD: Record<Exclude<ConsentScope, "all">, keyof Profile> = {
+  voice: "consent_voice",
+  reaction: "consent_reaction",
+  activity: "consent_activity",
+  symptoms: "consent_symptoms",
+  vitals: "consent_vitals",
+};
+
+/**
+ * Updates consent for one part of the daily check (or for everything) and writes
+ * an append-only consent event so the change is always explainable later.
+ */
+export async function setConsentScope(input: {
+  userId: string;
+  scope: ConsentScope;
+  granted: boolean;
+  actor: ConsentEvent["actor"];
+  actorName?: string | null;
+  note?: string | null;
+}): Promise<Profile> {
+  const patch: Partial<Profile> =
+    input.scope === "all"
+      ? {
+          consent_given: input.granted,
+          consent_revoked_at: input.granted ? null : new Date().toISOString(),
+        }
+      : ({ [SCOPE_FIELD[input.scope]]: input.granted } as Partial<Profile>);
+
+  const profile = await updateProfile(input.userId, patch);
+
+  const { error } = await supabase.from("consent_events").insert({
+    profile_id: input.userId,
+    scope: input.scope,
+    granted: input.granted,
+    actor: input.actor,
+    actor_name: input.actorName ?? null,
+    note: input.note?.trim() ? input.note.trim().slice(0, 500) : null,
+  });
+  if (error) throw error;
+
+  return profile;
+}
+
+export async function saveGuardian(
+  userId: string,
+  guardian: { guardian_name: string | null; guardian_relation: string | null },
+): Promise<Profile> {
+  return updateProfile(userId, guardian as Partial<Profile>);
 }

@@ -115,6 +115,75 @@ export type Database = {
           },
         ]
       }
+      consent_events: {
+        Row: {
+          actor: string
+          actor_name: string | null
+          created_at: string
+          granted: boolean
+          id: string
+          note: string | null
+          profile_id: string
+          scope: string
+        }
+        Insert: {
+          actor?: string
+          actor_name?: string | null
+          created_at?: string
+          granted: boolean
+          id?: string
+          note?: string | null
+          profile_id: string
+          scope?: string
+        }
+        Update: {
+          actor?: string
+          actor_name?: string | null
+          created_at?: string
+          granted?: boolean
+          id?: string
+          note?: string | null
+          profile_id?: string
+          scope?: string
+        }
+        Relationships: []
+      }
+      delivery_attempts: {
+        Row: {
+          channel: string
+          contact: string | null
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          message: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          contact?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          message?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          contact?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          message?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_checks: {
         Row: {
           activity_steps: number | null
@@ -222,10 +291,17 @@ export type Database = {
       profiles: {
         Row: {
           best_streak: number
+          consent_activity: boolean
           consent_given: boolean
+          consent_reaction: boolean
           consent_revoked_at: string | null
+          consent_symptoms: boolean
+          consent_vitals: boolean
+          consent_voice: boolean
           created_at: string
           full_name: string | null
+          guardian_name: string | null
+          guardian_relation: string | null
           id: string
           language: string
           linked_patient_id: string | null
@@ -237,10 +313,17 @@ export type Database = {
         }
         Insert: {
           best_streak?: number
+          consent_activity?: boolean
           consent_given?: boolean
+          consent_reaction?: boolean
           consent_revoked_at?: string | null
+          consent_symptoms?: boolean
+          consent_vitals?: boolean
+          consent_voice?: boolean
           created_at?: string
           full_name?: string | null
+          guardian_name?: string | null
+          guardian_relation?: string | null
           id: string
           language?: string
           linked_patient_id?: string | null
@@ -252,10 +335,17 @@ export type Database = {
         }
         Update: {
           best_streak?: number
+          consent_activity?: boolean
           consent_given?: boolean
+          consent_reaction?: boolean
           consent_revoked_at?: string | null
+          consent_symptoms?: boolean
+          consent_vitals?: boolean
+          consent_voice?: boolean
           created_at?: string
           full_name?: string | null
+          guardian_name?: string | null
+          guardian_relation?: string | null
           id?: string
           language?: string
           linked_patient_id?: string | null
@@ -305,12 +395,56 @@ export type Database = {
           },
         ]
       }
+      worker_assignments: {
+        Row: {
+          can_escalate: boolean
+          can_review: boolean
+          created_at: string
+          id: string
+          note: string | null
+          updated_at: string
+          village: string
+          worker_id: string
+        }
+        Insert: {
+          can_escalate?: boolean
+          can_review?: boolean
+          created_at?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          village: string
+          worker_id: string
+        }
+        Update: {
+          can_escalate?: boolean
+          can_review?: boolean
+          created_at?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          village?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_escalate_patient: {
+        Args: { _patient_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_review_patient: {
+        Args: { _patient_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_patient: {
+        Args: { _patient_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

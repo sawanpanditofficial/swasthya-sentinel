@@ -22,12 +22,16 @@ export function AlertCard({
   onAcknowledge,
   onReview,
   reviewPending = false,
+  allowEscalate = true,
+
 }: {
   alert: Alert;
   patient?: Patient | null;
   onAcknowledge?: (id: string) => void;
   onReview?: (action: Exclude<ReviewState, "open">, note: string) => void;
   reviewPending?: boolean;
+  /** Set false when the worker's assignment has no escalation grant. */
+  allowEscalate?: boolean;
 }) {
   const Icon = alert.severity === "high" ? AlertTriangle : BellRing;
   return (
@@ -90,6 +94,7 @@ export function AlertCard({
               className="mt-3 border-t border-border/70 pt-3"
               currentState={alert.review_state ?? "open"}
               pending={reviewPending}
+              allowEscalate={allowEscalate}
               onSubmit={onReview}
             />
           )}

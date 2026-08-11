@@ -8,7 +8,9 @@
 import { jsPDF } from "jspdf";
 import { DRIFT_BANDS, DRIFT_DISCLAIMER, bandMeta, buildBaseline } from "./drift";
 import { computeStreak } from "./streak";
-import type { HealthCheck, Patient } from "./types";
+import { explainCheck } from "./explain";
+import { REVIEW_STATE_LABEL_TEXT } from "./review-labels";
+import type { CaseReview, HealthCheck, Patient } from "./types";
 import { SYMPTOM_LABELS } from "./types";
 
 const INK = { r: 24, g: 42, b: 46 };
@@ -116,6 +118,39 @@ function drawChart(
   doc.text(`high ${fmt(max)}${unit}`, plotX + plotW, y + h - 2.5, { align: "right" });
 }
 
+
+/**
+ * The built-in PDF fonts only cover Latin-1, so glyphs like ₂ or − render as
+ * artefacts. Swap them for safe equivalents on every string the document draws.
+ */
+function asciiSafe(value: string): string {
+  return value
+    .replace(/[\u2080-\u2089]/g, (m) => String(m.charCodeAt(0) - 0x2080))
+    .replace(/[\u2070\u00b9\u00b2\u00b3\u2074-\u2079]/g, (m) =>
+      String("\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079".indexOf(m)),
+    )
+    .replace(/[\u2212\u2013\u2014\u2012]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/[\u2022\u25cf]/g, "\u00b7")
+    .replace(/\u20b9/g, "Rs ")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[^\x00-\xff]/g, "");
+}
+
+/** Wraps doc.text so every drawn string is font-safe. */
+function hardenText(doc: jsPDF): void {
+  const original = doc.text.bind(doc);
+  (doc as unknown as { text: typeof doc.text }).text = ((
+    text: string | string[],
+    ...rest: unknown[]
+  ) =>
+    (original as (t: string | string[], ...r: unknown[]) => jsPDF)(
+      Array.isArray(text) ? text.map(asciiSafe) : asciiSafe(String(text)),
+      ...rest,
+    )) as typeof doc.text;
+}
+
 function heading(doc: jsPDF, text: string, y: number): number {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
@@ -138,6 +173,7 @@ function body(doc: jsPDF, text: string, y: number, width = 182): number {
 
 export function buildPatientReport(patient: Patient, checks: HealthCheck[], windowDays: 14 | 30) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
+  hardenText(doc);
   const scoped = checks.filter((c) => {
     const age = (Date.now() - new Date(c.check_date).getTime()) / 86_400_000;
     return age <= windowDays + 1;
@@ -315,4 +351,290 @@ export function downloadPatientReport(
   const doc = buildPatientReport(patient, checks, windowDays);
   const safe = patient.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
   doc.save(`swasthyashadow-${safe}-${windowDays}day-report.pdf`);
+}
+
+/* ================= PHC review pack ================= */
+
+/**
+ * Draws one "baseline vs today" comparison row: two small bars, the signed
+ * change, and the prototype threshold that produced the verdict.
+ */
+function drawCompareRow(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  w: number,
+  row: {
+    signal: string;
+    today: string;
+    baseline: string;
+    change: string | null;
+    verdict: string;
+    threshold: string;
+    reason: string;
+    ratio: number | null;
+  },
+): number {
+  const flagged = row.verdict === "flagged";
+  const watch = row.verdict === "watch";
+  const rgb: [number, number, number] = flagged
+    ? [198, 92, 34]
+    : watch
+      ? [186, 138, 32]
+      : [32, 122, 88];
+
+  doc.setDrawColor(flagged ? rgb[0] : 220, flagged ? rgb[1] : 228, flagged ? rgb[2] : 228);
+  doc.setFillColor(flagged ? 253 : 250, flagged ? 246 : 251, flagged ? 240 : 251);
+  const h = 26;
+  doc.roundedRect(x, y, w, h, 2, 2, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(INK.r, INK.g, INK.b);
+  doc.text(row.signal, x + 4, y + 6);
+
+  doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+  doc.setFontSize(7);
+  doc.text(row.verdict.replace("_", " ").toUpperCase(), x + w - 4, y + 6, { align: "right" });
+
+  // Bars: baseline (grey) vs today (banded colour).
+  const barX = x + 4;
+  const barW = 58;
+  const ratio = row.ratio == null ? null : Math.max(0.08, Math.min(1.6, row.ratio));
+  doc.setFillColor(214, 222, 222);
+  doc.rect(barX, y + 10, barW * 0.62, 2.6, "F");
+  doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+  doc.rect(barX, y + 15, ratio == null ? barW * 0.62 : barW * 0.62 * ratio, 2.6, "F");
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.8);
+  doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
+  doc.text(`baseline  ${row.baseline}`, barX + barW + 2, y + 12.4);
+  doc.setTextColor(INK.r, INK.g, INK.b);
+  doc.text(`today  ${row.today}${row.change ? `  (${row.change})` : ""}`, barX + barW + 2, y + 17.4);
+
+  doc.setTextColor(90, 104, 106);
+  doc.setFontSize(6.8);
+  const reason = doc.splitTextToSize(`${row.reason} ${row.threshold}.`, w - 8);
+  doc.text(reason.slice(0, 2), x + 4, y + 22.2);
+
+  return y + h + 3;
+}
+
+/** Numeric today/baseline ratio for the bar chart, when both are numbers. */
+function ratioFor(today: string, baseline: string): number | null {
+  const t = Number(today.replace(/[^0-9.]/g, ""));
+  const b = Number(baseline.replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(t) || !Number.isFinite(b) || b === 0) return null;
+  return t / b;
+}
+
+/**
+ * One-click "PHC review pack": the case activity timeline plus a baseline-vs-today
+ * summary of every signal, so a clinician can see what changed, against what, and
+ * what has already been decided. Non-diagnostic by design.
+ */
+export function buildReviewPack(
+  patient: Patient,
+  checks: HealthCheck[],
+  reviews: CaseReview[],
+  windowDays: 14 | 30 = 14,
+) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  hardenText(doc);
+  const latest = checks[0];
+  const explanation = latest ? explainCheck(latest, checks) : null;
+  const scoped = checks.filter(
+    (c) => (Date.now() - new Date(c.check_date).getTime()) / 86_400_000 <= windowDays + 1,
+  );
+  const meta = bandMeta(patient.status);
+
+  // Header
+  doc.setFillColor(TEAL.r, TEAL.g, TEAL.b);
+  doc.rect(0, 0, 210, 26, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.setTextColor(255, 255, 255);
+  doc.text("PHC review pack", 14, 12);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.text(`SwasthyaShadow · ${patient.name} · last ${windowDays} days`, 14, 18.5);
+  doc.text(
+    `Generated ${new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}`,
+    196,
+    18.5,
+    { align: "right" },
+  );
+
+  let y = 34;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
+  doc.text(
+    `${patient.age ?? "—"} yrs · ${patient.sex ?? "—"} · ${patient.village ?? "village not recorded"} · baseline profile: ${patient.baseline_profile}`,
+    14,
+    y,
+  );
+  y += 8;
+
+  // Case status strip
+  const rgb = BAND_RGB[patient.status] ?? BAND_RGB["stable"]!;
+  const currentState = reviews[0]?.action ?? "open";
+  doc.setFillColor(248, 250, 250);
+  doc.setDrawColor(rgb[0], rgb[1], rgb[2]);
+  doc.roundedRect(14, y, 182, 22, 2, 2, "FD");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+  doc.text(String(patient.drift_score), 22, y + 15);
+  doc.setFontSize(10);
+  doc.text(`${meta.label} (${meta.range})`, 44, y + 10);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(60, 76, 78);
+  doc.text(
+    `Case status: ${REVIEW_STATE_LABEL_TEXT[currentState]} · ${reviews.length} recorded decision${reviews.length === 1 ? "" : "s"}`,
+    44,
+    y + 15.5,
+  );
+  y += 30;
+
+  // Baseline vs today
+  y = heading(doc, "Baseline vs today, signal by signal", y);
+  if (!explanation) {
+    y = body(doc, "No checks recorded yet, so there is nothing to compare.", y);
+  } else {
+    y = body(
+      doc,
+      `Every comparison uses this person's own last ${explanation.baselineSamples} check${explanation.baselineSamples === 1 ? "" : "s"} — never a population average.${explanation.baselineSufficient ? "" : " Baseline insufficient for some signals: continue monitoring rather than acting on the score."}`,
+      y,
+    );
+    explanation.signals.forEach((s) => {
+      if (y > 246) {
+        doc.addPage();
+        y = 20;
+      }
+      y = drawCompareRow(doc, 14, y, 182, {
+        signal: s.signal,
+        today: s.today,
+        baseline: s.baseline,
+        change: s.change,
+        verdict: s.verdict,
+        threshold: s.threshold,
+        reason: s.reason,
+        ratio: ratioFor(s.today, s.baseline),
+      });
+    });
+  }
+
+  // Trends
+  if (y > 240) {
+    doc.addPage();
+    y = 20;
+  }
+  y = heading(doc, `Trend context (${windowDays} days)`, y + 3);
+  drawChart(doc, 14, y, 88, 32, "Health Drift", series(scoped, "drift_score", windowDays), {
+    band: true,
+  });
+  drawChart(
+    doc,
+    108,
+    y,
+    88,
+    32,
+    "Reaction time (ms)",
+    series(scoped, "reaction_median_ms", windowDays),
+    { unit: " ms" },
+  );
+  y += 38;
+
+  // Case activity timeline
+  if (y > 220) {
+    doc.addPage();
+    y = 20;
+  }
+  y = heading(doc, "Case activity timeline", y);
+  if (reviews.length === 0) {
+    y = body(
+      doc,
+      "No reviewer activity recorded yet. This case has not been reviewed, escalated or closed.",
+      y,
+    );
+  } else {
+    reviews.forEach((r) => {
+      if (y > 262) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFillColor(TEAL.r, TEAL.g, TEAL.b);
+      doc.circle(16.5, y - 1.2, 1.2, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(INK.r, INK.g, INK.b);
+      doc.text(
+        `${REVIEW_STATE_LABEL_TEXT[r.action]} — ${r.reviewer_name ?? "Health worker"}`,
+        21,
+        y,
+      );
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
+      doc.text(
+        `${new Date(r.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}${r.alert_id ? " · on a specific alert" : " · on this person's case"}`,
+        21,
+        y + 4,
+      );
+      y += 8;
+      if (r.note) {
+        doc.setFontSize(8);
+        doc.setTextColor(60, 76, 78);
+        const lines = doc.splitTextToSize(r.note, 168);
+        doc.text(lines.slice(0, 4), 21, y);
+        y += Math.min(4, lines.length) * 4 + 1;
+      }
+      y += 1.5;
+    });
+    y = body(
+      doc,
+      "Decisions are append-only and cannot be edited. Reopening a closed case always requires a fresh resolution note.",
+      y + 1,
+    );
+  }
+
+  // Recommendation + disclaimer
+  if (y > 236) {
+    doc.addPage();
+    y = 20;
+  }
+  y = heading(doc, "Recommended next step", y);
+  y = body(doc, explanation?.recommendation ?? meta.action, y);
+  y = body(doc, DRIFT_DISCLAIMER, y);
+  y = body(
+    doc,
+    "This pack is a prioritisation aid for human review. It names no disease, rules none out, and replaces no clinical examination. Demo-mode values are synthetic.",
+    y,
+  );
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
+  doc.text(
+    "SwasthyaShadow — Smart India Hackathon prototype. Non-diagnostic. Shared only with the person's consent.",
+    105,
+    288,
+    { align: "center" },
+  );
+
+  return doc;
+}
+
+export function downloadReviewPack(
+  patient: Patient,
+  checks: HealthCheck[],
+  reviews: CaseReview[],
+  windowDays: 14 | 30 = 14,
+) {
+  const doc = buildReviewPack(patient, checks, reviews, windowDays);
+  const safe = patient.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+  doc.save(`swasthyashadow-${safe}-phc-review-pack.pdf`);
 }
