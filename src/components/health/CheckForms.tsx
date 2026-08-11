@@ -82,11 +82,14 @@ export function VitalsForm({
   steps,
   onVitals,
   onSteps,
+  hideSteps = false,
 }: {
   vitals: VitalReport;
   steps: number | null;
   onVitals: (next: VitalReport) => void;
   onSteps: (next: number | null) => void;
+  /** Hidden when activity consent is paused. */
+  hideSteps?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -113,6 +116,11 @@ export function VitalsForm({
           />
         </div>
       ))}
+      {hideSteps ? (
+        <p className="rounded-xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+          Step count is paused in your consent settings, so activity is not asked for or compared.
+        </p>
+      ) : (
       <div>
         <Label htmlFor="steps" className="text-sm font-semibold">
           Steps today <span className="font-normal text-muted-foreground">· आज के कदम</span>
@@ -128,6 +136,7 @@ export function VitalsForm({
           className="mt-1.5 h-12"
         />
       </div>
+      )}
     </div>
   );
 }
