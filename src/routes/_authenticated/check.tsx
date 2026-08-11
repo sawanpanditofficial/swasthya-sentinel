@@ -71,9 +71,9 @@ function CheckFlow() {
     setSaving(true);
     try {
       const history = historyQuery.data ?? [];
-      const baseline = buildBaseline(history);
       const submission = { patientId, voice, reaction, symptoms, vitals, activitySteps: steps };
-      const analysis = analyseCheck(submission, baseline);
+      const analysis = analyseCheck(submission, history);
+
       await saveHealthCheck(submission, analysis);
       setResult({ score: analysis.score, band: bandForScore(analysis.score), deviations: analysis.deviations });
       setStep(4);
