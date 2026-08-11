@@ -445,6 +445,7 @@ export type Database = {
         Args: { _patient_id: string; _user_id: string }
         Returns: boolean
       }
+      ensure_own_patient: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
