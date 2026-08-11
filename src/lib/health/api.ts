@@ -22,7 +22,7 @@ import type { DriftAnalysis } from "./drift";
 
 /** Demo persona used when a citizen account has no linked record yet. */
 const PROFILE_FIELDS =
-  "id, full_name, role, linked_patient_id, consent_given, language, reminder_enabled, reminder_time, consent_revoked_at, best_streak";
+  "id, full_name, role, linked_patient_id, consent_given, language, reminder_enabled, reminder_time, reminder_channel, reminder_contact, consent_revoked_at, best_streak";
 
 export const DEMO_PATIENT_ID = "a0000000-0000-4000-8000-000000000001";
 export const DEMO_HIGH_PRIORITY_ID = "a0000001-0000-4000-8000-000000000001";
