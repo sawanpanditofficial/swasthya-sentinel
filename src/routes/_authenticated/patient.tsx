@@ -9,6 +9,7 @@ import { PatientTimeline } from "@/components/health/PatientTimeline";
 import { ReferralCard } from "@/components/health/ReferralCard";
 import { StreakCard } from "@/components/health/StreakCard";
 import { ReportDownload } from "@/components/health/ReportDownload";
+import { WhyFlagged } from "@/components/health/WhyFlagged";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -21,7 +22,7 @@ import {
 } from "@/lib/health/api";
 import { buildBaseline } from "@/lib/health/drift";
 import { toSeries } from "@/lib/health/series";
-import { computeStreak, msUntilReminder } from "@/lib/health/streak";
+import { computeStreak, msUntilReminder, reminderChannelMeta } from "@/lib/health/streak";
 
 export const Route = createFileRoute("/_authenticated/patient")({
   head: () => ({
@@ -112,12 +113,16 @@ function PatientDashboard() {
     const timer = window.setTimeout(() => {
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification("SwasthyaShadow", {
-          body: "Time for your two-minute daily check.",
+            body: `Time for your two-minute daily check.${
+            reminderChannelMeta(profile.reminder_channel ?? "in_app").live
+              ? ""
+              : " (Demo mode: your chosen delivery channel is simulated.)"
+          }`,
         });
       }
     }, delay);
     return () => window.clearTimeout(timer);
-  }, [profile?.reminder_enabled, profile?.reminder_time, streak.checkedToday]);
+  }, [profile, streak.checkedToday]);
 
   if (profileQuery.isLoading || patientQuery.isLoading) {
     return (
@@ -170,6 +175,7 @@ function PatientDashboard() {
           weekDays={week}
           reminderEnabled={profile?.reminder_enabled ?? true}
           reminderTime={profile?.reminder_time ?? "08:00"}
+          reminderChannel={profile?.reminder_channel ?? "in_app"}
         />
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -204,6 +210,8 @@ function PatientDashboard() {
             color="var(--color-chart-4)"
           />
         </div>
+
+        {latest && <WhyFlagged check={latest} history={checks} />}
 
         {patient && <ReportDownload patient={patient} checks={checks} />}
 
