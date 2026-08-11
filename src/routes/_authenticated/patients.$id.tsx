@@ -206,11 +206,25 @@ function PatientDetail() {
             Your decision is logged with your name and stays on the record. Escalating also raises a
             referral so the case reaches a facility queue. Changing a decided case needs a resolution note.
           </p>
-          <CaseFeedback
-            currentState={(reviewsQuery.data?.[0]?.action ?? "open") as ReviewState}
-            pending={review.isPending}
-            onSubmit={(action, note) => review.mutate({ action, note })}
-          />
+          {grants.canReview ? (
+            <CaseFeedback
+              currentState={(reviewsQuery.data?.[0]?.action ?? "open") as ReviewState}
+              pending={review.isPending}
+              allowEscalate={grants.canEscalate}
+              onSubmit={(action, note) => review.mutate({ action, note })}
+            />
+          ) : (
+            <p className="rounded-xl border border-border bg-secondary/40 p-3 text-sm text-muted-foreground">
+              You can view this case but not record decisions on it. Review rights are granted per
+              village on the community dashboard.
+            </p>
+          )}
+          {grants.canReview && !grants.canEscalate && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Escalation is not part of your grant for {patient?.village ?? "this village"}, so this
+              case can be marked reviewed or closed but not escalated.
+            </p>
+          )}
         </section>
 
         <CaseTimeline reviews={reviewsQuery.data ?? []} />
@@ -229,6 +243,13 @@ function PatientDetail() {
               }
             />
           ))}
+          {!grants.canEscalate && (
+            <p className="surface-card p-4 text-sm text-muted-foreground">
+              Raising a referral needs escalation rights for {patient?.village ?? "this village"}.
+              Existing referrals stay visible so you can follow the outcome.
+            </p>
+          )}
+          {grants.canEscalate && (
           <form
             className="surface-card space-y-3 p-4"
             onSubmit={(e) => {
@@ -269,6 +290,7 @@ function PatientDetail() {
               Send for clinical review
             </Button>
           </form>
+          )}
         </section>
       </div>
     </AppShell>
