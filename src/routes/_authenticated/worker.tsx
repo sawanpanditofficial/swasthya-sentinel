@@ -5,10 +5,12 @@ import { Loader2, Search, Users, AlertTriangle, Activity } from "lucide-react";
 import { AppShell } from "@/components/health/AppShell";
 import { PriorityQueue } from "@/components/health/PriorityQueue";
 import { PatientCard } from "@/components/health/PatientCard";
+import { CoveragePanel } from "@/components/health/CoveragePanel";
 import { Input } from "@/components/ui/input";
 import { listPatients } from "@/lib/health/api";
 import { useAuth } from "@/hooks/useAuth";
-import { ensureProfile } from "@/lib/health/api";
+import { ensureProfile, listAssignments } from "@/lib/health/api";
+import { coverageSummary } from "@/lib/health/scope";
 
 export const Route = createFileRoute("/_authenticated/worker")({
   head: () => ({
@@ -40,8 +42,16 @@ function WorkerDashboard() {
     enabled: !!user,
     queryFn: () => ensureProfile(user!.id, user!.user_metadata?.["full_name"] as string | undefined),
   });
+  const assignmentsQuery = useQuery({
+    queryKey: ["assignments", user?.id],
+    enabled: !!user,
+    queryFn: () => listAssignments(user!.id),
+  });
+  // The database only returns members inside an assigned village, so this list
+  // is already scoped to this worker's coverage.
   const patientsQuery = useQuery({ queryKey: ["patients"], queryFn: listPatients });
   const patients = patientsQuery.data ?? [];
+  const assignments = assignmentsQuery.data ?? [];
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -92,13 +102,28 @@ function WorkerDashboard() {
           ))}
         </div>
 
-        <PriorityQueue patients={patients} />
+        {user && <CoveragePanel workerId={user.id} />}
+
+        {assignments.length === 0 ? (
+          <section className="surface-card border-monitor/50 bg-monitor-soft/30 p-5" aria-label="No coverage">
+            <h2 className="text-sm font-semibold text-foreground">No village assigned yet</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Cases stay hidden until coverage is granted. Claim the villages you actually serve
+              above — you will only ever see and act on community members inside them.
+            </p>
+          </section>
+        ) : (
+          <PriorityQueue patients={patients} />
+        )}
 
         <section aria-label="All community members">
           <header className="mb-3 grid grid-cols-[minmax(0,1fr)] gap-3 sm:flex sm:items-center sm:justify-between">
-            <h2 className="min-w-0 truncate text-base font-semibold text-foreground">
-              All community members
-            </h2>
+            <div className="min-w-0">
+              <h2 className="min-w-0 truncate text-base font-semibold text-foreground">
+                Community members in my coverage
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">{coverageSummary(assignments)}</p>
+            </div>
             <div className="relative sm:w-64">
               <Search
                 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -121,7 +146,11 @@ function WorkerDashboard() {
             ))}
           </ul>
           {filtered.length === 0 && (
-            <p className="surface-card p-5 text-sm text-muted-foreground">No members match that search.</p>
+            <p className="surface-card p-5 text-sm text-muted-foreground">
+              {assignments.length === 0
+                ? "Nothing to show yet — claim a village above to see the people you support."
+                : "No members match that search."}
+            </p>
           )}
         </section>
       </div>

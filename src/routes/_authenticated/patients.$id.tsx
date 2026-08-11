@@ -13,6 +13,7 @@ import { CaseTimeline } from "@/components/health/CaseTimeline";
 import { WhyFlagged } from "@/components/health/WhyFlagged";
 
 import { ReportDownload } from "@/components/health/ReportDownload";
+import { ReviewPackDownload } from "@/components/health/ReviewPackDownload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ import {
   ensureProfile,
   getChecks,
   getPatient,
+  listAssignments,
   listCaseReviews,
   listReferrals,
   recordCaseReview,
@@ -30,6 +32,7 @@ import {
 import type { ReviewState } from "@/lib/health/types";
 import { buildBaseline } from "@/lib/health/drift";
 import { toSeries } from "@/lib/health/series";
+import { grantsForPatient } from "@/lib/health/scope";
 
 export const Route = createFileRoute("/_authenticated/patients/$id")({
   head: () => ({
@@ -68,6 +71,11 @@ function PatientDetail() {
   const checksQuery = useQuery({ queryKey: ["checks", id], queryFn: () => getChecks(id, 30) });
   const referralsQuery = useQuery({ queryKey: ["referrals", id], queryFn: () => listReferrals(id) });
   const reviewsQuery = useQuery({ queryKey: ["reviews", id], queryFn: () => listCaseReviews(id) });
+  const assignmentsQuery = useQuery({
+    queryKey: ["assignments", user?.id],
+    enabled: !!user,
+    queryFn: () => listAssignments(user!.id),
+  });
 
   const review = useMutation({
     mutationFn: (vars: { action: Exclude<ReviewState, "open">; note: string }) =>
@@ -113,6 +121,9 @@ function PatientDetail() {
   const patient = patientQuery.data;
   const checks = checksQuery.data ?? [];
   const baseline = buildBaseline(checks.slice(1));
+  // Mirror the database rules in the UI so a worker never sees a control they
+  // are not permitted to use.
+  const grants = grantsForPatient(assignmentsQuery.data ?? [], patient);
 
   if (patientQuery.isLoading) {
     return (
@@ -178,6 +189,14 @@ function PatientDetail() {
         </div>
 
         {patient && <ReportDownload patient={patient} checks={checks} />}
+
+      {patient && (
+        <ReviewPackDownload
+          patient={patient}
+          checks={checks}
+          reviews={reviewsQuery.data ?? []}
+        />
+      )}
 
         {checks[0] && <WhyFlagged check={checks[0]} history={checks} defaultOpen />}
 
