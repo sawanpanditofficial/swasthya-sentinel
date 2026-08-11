@@ -71,7 +71,7 @@ export async function logAccess(input: {
   await supabaseAdmin.from("access_logs").insert({
     patient_id: input.patientId,
     actor_id: input.actorId ?? null,
-    actor_role: input.actor.role ?? undefined,
+    actor_role: input.actor.role ?? "responder",
     actor_name: input.actor.name?.slice(0, 120) ?? null,
     actor_org: input.actor.org?.slice(0, 120) ?? null,
     action: input.action,
