@@ -129,7 +129,10 @@ function asciiSafe(value: string): string {
     .replace(/[\u2070\u00b9\u00b2\u00b3\u2074-\u2079]/g, (m) =>
       String("\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079".indexOf(m)),
     )
-    .replace(/\u2212/g, "-")
+    .replace(/[\u2212\u2013\u2014\u2012]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/[\u2022\u25cf]/g, "\u00b7")
+    .replace(/\u20b9/g, "Rs ")
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201c\u201d]/g, '"')
     .replace(/[^\x00-\xff]/g, "");
@@ -529,7 +532,7 @@ export function buildReviewPack(
     doc.addPage();
     y = 20;
   }
-  y = heading(doc, `Trend context (${windowDays} days)`, y);
+  y = heading(doc, `Trend context (${windowDays} days)`, y + 3);
   drawChart(doc, 14, y, 88, 32, "Health Drift", series(scoped, "drift_score", windowDays), {
     band: true,
   });
