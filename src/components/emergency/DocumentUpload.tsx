@@ -178,7 +178,7 @@ export function DocumentUpload({
   );
 }
 
-function ReviewLine({ label, items }: { label: string; items?: string[] }) {
+function ReviewLine({ label, items }: { label: string; items?: string[] | undefined }) {
   if (!items || items.length === 0) return null;
   return (
     <li>
