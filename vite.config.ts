@@ -15,5 +15,13 @@ export default defineConfig({
   },
   vite: {
     plugins: [mcpPlugin()],
+    // Pre-bundle the heavier browser-only libraries at startup. Discovering them
+    // mid-session forces a dependency re-optimisation, which invalidates module
+    // URLs the open tab already holds and surfaces as "Importing a module script
+    // failed" with a blank screen.
+    optimizeDeps: {
+      include: ["qrcode", "jspdf", "recharts"],
+    },
   },
 });
+
