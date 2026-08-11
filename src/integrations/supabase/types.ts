@@ -748,6 +748,7 @@ export type Database = {
           drift_score: number
           id: string
           is_demo: boolean
+          is_seed: boolean
           last_check_at: string | null
           name: string
           sex: string | null
@@ -761,6 +762,7 @@ export type Database = {
           drift_score?: number
           id?: string
           is_demo?: boolean
+          is_seed?: boolean
           last_check_at?: string | null
           name: string
           sex?: string | null
@@ -774,6 +776,7 @@ export type Database = {
           drift_score?: number
           id?: string
           is_demo?: boolean
+          is_seed?: boolean
           last_check_at?: string | null
           name?: string
           sex?: string | null
