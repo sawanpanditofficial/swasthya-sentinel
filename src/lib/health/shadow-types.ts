@@ -158,7 +158,7 @@ export interface PatientDisasterStatus {
   triage_status: TriageStatus;
   assigned_to: string | null;
   hospital_id: string | null;
-  note: string | null
+  note: string | null;
   updated_at: string;
 }
 
