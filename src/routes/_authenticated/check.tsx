@@ -43,6 +43,9 @@ export const Route = createFileRoute("/_authenticated/check")({
 
 const STEPS = ["Voice", "Reaction", "Symptoms", "Vitals", "Result"] as const;
 
+/** Which check step each consent scope controls. */
+const STEP_SCOPE = ["voice", "reaction", "symptoms", "vitals"] as const;
+
 function CheckFlow() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -67,11 +70,29 @@ function CheckFlow() {
     queryFn: () => getChecks(patientId, 30),
   });
 
+  const profile = profileQuery.data;
+  const allowed = {
+    voice: profile?.consent_voice !== false,
+    reaction: profile?.consent_reaction !== false,
+    activity: profile?.consent_activity !== false,
+    symptoms: profile?.consent_symptoms !== false,
+    vitals: profile?.consent_vitals !== false,
+  };
+
   async function submit() {
     setSaving(true);
     try {
       const history = historyQuery.data ?? [];
-      const submission = { patientId, voice, reaction, symptoms, vitals, activitySteps: steps };
+      // A paused signal is left out entirely rather than guessed, so the drift
+      // score simply ignores it.
+      const submission = {
+        patientId,
+        voice: allowed.voice ? voice : null,
+        reaction: allowed.reaction ? reaction : null,
+        symptoms: allowed.symptoms ? symptoms : {},
+        vitals: allowed.vitals ? vitals : {},
+        activitySteps: allowed.activity ? steps : null,
+      };
       const analysis = analyseCheck(submission, history);
 
       await saveHealthCheck(submission, analysis);
@@ -124,11 +145,34 @@ function CheckFlow() {
       </ol>
 
       <div className="surface-card p-4 sm:p-6">
-        {step === 0 && <VoiceRecorder value={voice} onChange={setVoice} />}
-        {step === 1 && <ReactionTest value={reaction} onChange={setReaction} />}
-        {step === 2 && <SymptomForm symptoms={symptoms} onChange={setSymptoms} />}
-        {step === 3 && (
-          <VitalsForm vitals={vitals} steps={steps} onVitals={setVitals} onSteps={setSteps} />
+        {step < 4 && !allowed[STEP_SCOPE[step]!] ? (
+          <div className="space-y-4 py-2">
+            <h2 className="text-base font-semibold text-foreground">
+              {STEPS[step]} is paused by your consent settings
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              This step is skipped and the signal is left out of your Health Drift score instead of
+              being estimated. You can allow it again at any time.
+            </p>
+            <Button asChild variant="outline">
+              <Link to="/settings">Open consent centre</Link>
+            </Button>
+          </div>
+        ) : (
+          <>
+            {step === 0 && <VoiceRecorder value={voice} onChange={setVoice} />}
+            {step === 1 && <ReactionTest value={reaction} onChange={setReaction} />}
+            {step === 2 && <SymptomForm symptoms={symptoms} onChange={setSymptoms} />}
+            {step === 3 && (
+              <VitalsForm
+                vitals={vitals}
+                steps={steps}
+                onVitals={setVitals}
+                onSteps={setSteps}
+                {...(allowed.activity ? {} : { hideSteps: true })}
+              />
+            )}
+          </>
         )}
         {step === 4 && result && (
           <div className="space-y-5">
@@ -157,7 +201,7 @@ function CheckFlow() {
           </Button>
           {step < 3 ? (
             <Button size="lg" className="flex-1" onClick={() => setStep((s) => s + 1)}>
-              {step === 0 && !voice ? "Skip voice" : "Continue"}
+              {!allowed[STEP_SCOPE[step]!] ? "Next step" : step === 0 && !voice ? "Skip voice" : "Continue"}
               <ArrowRight className="size-4" aria-hidden />
             </Button>
           ) : (
