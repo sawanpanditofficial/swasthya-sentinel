@@ -20,6 +20,8 @@ export default defineMcp({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
+  // Cast: defineTool omits `outputSchema` and the project runs with
+  // exactOptionalPropertyTypes, so the optional field reads as `undefined`.
   tools: [
     myHealthSummary,
     listHealthChecks,
@@ -27,5 +29,5 @@ export default defineMcp({
     listAlerts,
     listReferrals,
     recordCaseReview,
-  ],
+  ] as unknown as Parameters<typeof defineMcp>[0]["tools"],
 });
