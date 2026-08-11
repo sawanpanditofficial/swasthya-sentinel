@@ -80,8 +80,10 @@ function CheckFlow() {
   };
 
   async function submit() {
+    if (!patientId) return;
     setSaving(true);
     try {
+
       const history = historyQuery.data ?? [];
       // A paused signal is left out entirely rather than guessed, so the drift
       // score simply ignores it.
