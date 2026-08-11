@@ -43,28 +43,27 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 }
 
 export async function ensureProfile(userId: string, fullName?: string | null): Promise<Profile> {
-  const existing = await getProfile(userId);
-  if (existing) {
-    if (!existing.linked_patient_id && existing.role === "patient") {
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({ linked_patient_id: DEMO_PATIENT_ID })
-        .eq("id", userId)
-        .select(PROFILE_FIELDS)
-        .single();
-      if (error) throw error;
-      return data as Profile;
-    }
-    return existing;
+  let profile = await getProfile(userId);
+  if (!profile) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .insert({ id: userId, full_name: fullName ?? null })
+      .select(PROFILE_FIELDS)
+      .single();
+    if (error) throw error;
+    profile = data as Profile;
   }
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert({ id: userId, full_name: fullName ?? null, linked_patient_id: DEMO_PATIENT_ID })
-    .select(PROFILE_FIELDS)
-    .single();
-  if (error) throw error;
-  return data as Profile;
+
+  // A brand-new citizen account starts with its own empty record — never the
+  // seeded demo persona.
+  if (!profile.linked_patient_id && profile.role === "patient") {
+    const { ensureOwnPatient } = await import("./patient-bootstrap.functions");
+    const patientId = await ensureOwnPatient();
+    if (patientId) profile = { ...profile, linked_patient_id: patientId };
+  }
+  return profile;
 }
+
 
 export async function updateProfile(userId: string, patch: Partial<Profile>): Promise<Profile> {
   const { data, error } = await supabase
