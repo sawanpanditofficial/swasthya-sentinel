@@ -19,6 +19,7 @@ import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedCheckRouteImport } from './routes/_authenticated/check'
 import { Route as AuthenticatedPatientRouteImport } from './routes/_authenticated/patient'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedShadowRouteImport } from './routes/_authenticated/shadow'
 import { Route as AuthenticatedWorkerRouteImport } from './routes/_authenticated/worker'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -75,6 +76,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedShadowRoute = AuthenticatedShadowRouteImport.update({
+  id: '/shadow',
+  path: '/shadow',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedWorkerRoute = AuthenticatedWorkerRouteImport.update({
   id: '/worker',
   path: '/worker',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/shadow': typeof AuthenticatedShadowRoute
   '/worker': typeof AuthenticatedWorkerRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/shadow': typeof AuthenticatedShadowRoute
   '/worker': typeof AuthenticatedWorkerRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/_authenticated/check': typeof AuthenticatedCheckRoute
   '/_authenticated/patient': typeof AuthenticatedPatientRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/shadow': typeof AuthenticatedShadowRoute
   '/_authenticated/worker': typeof AuthenticatedWorkerRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/check'
     | '/patient'
     | '/settings'
+    | '/shadow'
     | '/worker'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/check'
     | '/patient'
     | '/settings'
+    | '/shadow'
     | '/worker'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/check'
     | '/_authenticated/patient'
     | '/_authenticated/settings'
+    | '/_authenticated/shadow'
     | '/_authenticated/worker'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -276,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/shadow': {
+      id: '/_authenticated/shadow'
+      path: '/shadow'
+      fullPath: '/shadow'
+      preLoaderRoute: typeof AuthenticatedShadowRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/worker': {
       id: '/_authenticated/worker'
       path: '/worker'
@@ -312,6 +331,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckRoute: typeof AuthenticatedCheckRoute
   AuthenticatedPatientRoute: typeof AuthenticatedPatientRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedShadowRoute: typeof AuthenticatedShadowRoute
   AuthenticatedWorkerRoute: typeof AuthenticatedWorkerRoute
   AuthenticatedPatientsIdRoute: typeof AuthenticatedPatientsIdRoute
 }
@@ -321,6 +341,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckRoute: AuthenticatedCheckRoute,
   AuthenticatedPatientRoute: AuthenticatedPatientRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedShadowRoute: AuthenticatedShadowRoute,
   AuthenticatedWorkerRoute: AuthenticatedWorkerRoute,
   AuthenticatedPatientsIdRoute: AuthenticatedPatientsIdRoute,
 }
