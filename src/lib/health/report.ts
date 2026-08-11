@@ -118,6 +118,36 @@ function drawChart(
   doc.text(`high ${fmt(max)}${unit}`, plotX + plotW, y + h - 2.5, { align: "right" });
 }
 
+
+/**
+ * The built-in PDF fonts only cover Latin-1, so glyphs like ₂ or − render as
+ * artefacts. Swap them for safe equivalents on every string the document draws.
+ */
+function asciiSafe(value: string): string {
+  return value
+    .replace(/[\u2080-\u2089]/g, (m) => String(m.charCodeAt(0) - 0x2080))
+    .replace(/[\u2070\u00b9\u00b2\u00b3\u2074-\u2079]/g, (m) =>
+      String("\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079".indexOf(m)),
+    )
+    .replace(/\u2212/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[^\x00-\xff]/g, "");
+}
+
+/** Wraps doc.text so every drawn string is font-safe. */
+function hardenText(doc: jsPDF): void {
+  const original = doc.text.bind(doc);
+  (doc as unknown as { text: typeof doc.text }).text = ((
+    text: string | string[],
+    ...rest: unknown[]
+  ) =>
+    (original as (t: string | string[], ...r: unknown[]) => jsPDF)(
+      Array.isArray(text) ? text.map(asciiSafe) : asciiSafe(String(text)),
+      ...rest,
+    )) as typeof doc.text;
+}
+
 function heading(doc: jsPDF, text: string, y: number): number {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
@@ -140,6 +170,7 @@ function body(doc: jsPDF, text: string, y: number, width = 182): number {
 
 export function buildPatientReport(patient: Patient, checks: HealthCheck[], windowDays: 14 | 30) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
+  hardenText(doc);
   const scoped = checks.filter((c) => {
     const age = (Date.now() - new Date(c.check_date).getTime()) / 86_400_000;
     return age <= windowDays + 1;
@@ -407,6 +438,7 @@ export function buildReviewPack(
   windowDays: 14 | 30 = 14,
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
+  hardenText(doc);
   const latest = checks[0];
   const explanation = latest ? explainCheck(latest, checks) : null;
   const scoped = checks.filter(
@@ -493,7 +525,7 @@ export function buildReviewPack(
   }
 
   // Trends
-  if (y > 210) {
+  if (y > 240) {
     doc.addPage();
     y = 20;
   }
