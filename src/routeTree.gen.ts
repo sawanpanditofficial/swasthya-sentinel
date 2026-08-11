@@ -16,6 +16,7 @@ import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedCheckRouteImport } from './routes/_authenticated/check'
 import { Route as AuthenticatedPatientRouteImport } from './routes/_authenticated/patient'
 import { Route as AuthenticatedWorkerRouteImport } from './routes/_authenticated/worker'
+import { Route as AuthenticatedPatientsIdRouteImport } from './routes/_authenticated/patients.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,6 +52,11 @@ const AuthenticatedWorkerRoute = AuthenticatedWorkerRouteImport.update({
   path: '/worker',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPatientsIdRoute = AuthenticatedPatientsIdRouteImport.update({
+  id: '/patients/$id',
+  path: '/patients/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
   '/worker': typeof AuthenticatedWorkerRoute
+  '/patients/$id': typeof AuthenticatedPatientsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/check': typeof AuthenticatedCheckRoute
   '/patient': typeof AuthenticatedPatientRoute
   '/worker': typeof AuthenticatedWorkerRoute
+  '/patients/$id': typeof AuthenticatedPatientsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,12 +85,27 @@ export interface FileRoutesById {
   '/_authenticated/check': typeof AuthenticatedCheckRoute
   '/_authenticated/patient': typeof AuthenticatedPatientRoute
   '/_authenticated/worker': typeof AuthenticatedWorkerRoute
+  '/_authenticated/patients/$id': typeof AuthenticatedPatientsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/alerts' | '/check' | '/patient' | '/worker'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/alerts'
+    | '/check'
+    | '/patient'
+    | '/worker'
+    | '/patients/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/alerts' | '/check' | '/patient' | '/worker'
+  to:
+    | '/'
+    | '/auth'
+    | '/alerts'
+    | '/check'
+    | '/patient'
+    | '/worker'
+    | '/patients/$id'
   id:
     | '__root__'
     | '/'
@@ -92,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/check'
     | '/_authenticated/patient'
     | '/_authenticated/worker'
+    | '/_authenticated/patients/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -151,6 +175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/patients/$id': {
+      id: '/_authenticated/patients/$id'
+      path: '/patients/$id'
+      fullPath: '/patients/$id'
+      preLoaderRoute: typeof AuthenticatedPatientsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -159,6 +190,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckRoute: typeof AuthenticatedCheckRoute
   AuthenticatedPatientRoute: typeof AuthenticatedPatientRoute
   AuthenticatedWorkerRoute: typeof AuthenticatedWorkerRoute
+  AuthenticatedPatientsIdRoute: typeof AuthenticatedPatientsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -166,6 +198,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckRoute: AuthenticatedCheckRoute,
   AuthenticatedPatientRoute: AuthenticatedPatientRoute,
   AuthenticatedWorkerRoute: AuthenticatedWorkerRoute,
+  AuthenticatedPatientsIdRoute: AuthenticatedPatientsIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
