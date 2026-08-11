@@ -8,6 +8,8 @@ import { HealthDriftCard } from "@/components/health/HealthDriftCard";
 import { TrendChart } from "@/components/health/TrendChart";
 import { PatientTimeline } from "@/components/health/PatientTimeline";
 import { ReferralCard } from "@/components/health/ReferralCard";
+import { CaseFeedback, ReviewLog } from "@/components/health/CaseFeedback";
+import { ReportDownload } from "@/components/health/ReportDownload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +19,12 @@ import {
   ensureProfile,
   getChecks,
   getPatient,
+  listCaseReviews,
   listReferrals,
+  recordCaseReview,
   setReferralStatus,
 } from "@/lib/health/api";
+import type { ReviewState } from "@/lib/health/types";
 import { buildBaseline } from "@/lib/health/drift";
 import { toSeries } from "@/lib/health/series";
 
@@ -59,6 +64,30 @@ function PatientDetail() {
   const patientQuery = useQuery({ queryKey: ["patient", id], queryFn: () => getPatient(id) });
   const checksQuery = useQuery({ queryKey: ["checks", id], queryFn: () => getChecks(id, 30) });
   const referralsQuery = useQuery({ queryKey: ["referrals", id], queryFn: () => listReferrals(id) });
+  const reviewsQuery = useQuery({ queryKey: ["reviews", id], queryFn: () => listCaseReviews(id) });
+
+  const review = useMutation({
+    mutationFn: (vars: { action: Exclude<ReviewState, "open">; note: string }) =>
+      recordCaseReview({
+        patientId: id,
+        action: vars.action,
+        note: vars.note,
+        reviewerId: user?.id ?? null,
+        reviewerName: profileQuery.data?.full_name ?? "Health worker",
+      }),
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+      queryClient.invalidateQueries({ queryKey: ["referrals", id] });
+      toast.success(
+        vars.action === "escalated"
+          ? "Escalated — referral raised for clinical review."
+          : vars.action === "closed"
+            ? "Case closed."
+            : "Deviation marked as reviewed.",
+      );
+    },
+    onError: () => toast.error("Could not save that decision."),
+  });
 
   const refer = useMutation({
     mutationFn: () => createReferral(id, reason.trim(), facility.trim()),
@@ -144,6 +173,23 @@ function PatientDetail() {
             color="var(--color-chart-4)"
           />
         </div>
+
+        {patient && <ReportDownload patient={patient} checks={checks} />}
+
+        <section className="surface-card p-4 sm:p-5" aria-label="Reviewer decision">
+          <h2 className="text-base font-semibold text-foreground">Act on this deviation</h2>
+          <p className="mt-0.5 mb-3 text-xs text-muted-foreground">
+            Your decision is logged with your name and stays on the record. Escalating also raises a
+            referral so the case reaches a facility queue.
+          </p>
+          <CaseFeedback
+            currentState={(reviewsQuery.data?.[0]?.action ?? "open") as ReviewState}
+            pending={review.isPending}
+            onSubmit={(action, note) => review.mutate({ action, note })}
+          />
+        </section>
+
+        {reviewsQuery.data && <ReviewLog reviews={reviewsQuery.data} />}
 
         <PatientTimeline checks={checks} />
 
