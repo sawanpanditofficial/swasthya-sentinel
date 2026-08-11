@@ -4,7 +4,14 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/health/AppShell";
 import { AlertCard } from "@/components/health/AlertCard";
-import { acknowledgeAlert, ensureProfile, listAlerts, recordCaseReview } from "@/lib/health/api";
+import {
+  acknowledgeAlert,
+  ensureProfile,
+  listAlerts,
+  listAssignments,
+  recordCaseReview,
+} from "@/lib/health/api";
+import { grantsForPatient } from "@/lib/health/scope";
 import type { ReviewState } from "@/lib/health/types";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -38,7 +45,14 @@ function AlertsPage() {
     enabled: !!user,
     queryFn: () => ensureProfile(user!.id, user!.user_metadata?.["full_name"] as string | undefined),
   });
+  // Alerts are already scoped to assigned villages by the database; the grants
+  // below decide which controls a worker is allowed to see.
   const alertsQuery = useQuery({ queryKey: ["alerts"], queryFn: () => listAlerts(20) });
+  const assignmentsQuery = useQuery({
+    queryKey: ["assignments", user?.id],
+    enabled: !!user,
+    queryFn: () => listAssignments(user!.id),
+  });
 
   const ack = useMutation({
     mutationFn: acknowledgeAlert,
@@ -98,18 +112,25 @@ function AlertsPage() {
         </p>
       ) : (
         <div className="space-y-3">
-          {alerts.map((a) => (
-            <AlertCard
-              key={a.id}
-              alert={a}
-              patient={a.patient ?? null}
-              onAcknowledge={(id) => ack.mutate(id)}
-              reviewPending={review.isPending}
-              onReview={(action, note) =>
-                review.mutate({ patientId: a.patient_id, alertId: a.id, action, note })
-              }
-            />
-          ))}
+          {alerts.map((a) => {
+            const grants = grantsForPatient(assignmentsQuery.data ?? [], a.patient ?? null);
+            return (
+              <AlertCard
+                key={a.id}
+                alert={a}
+                patient={a.patient ?? null}
+                onAcknowledge={(id) => ack.mutate(id)}
+                reviewPending={review.isPending}
+                allowEscalate={grants.canEscalate}
+                {...(grants.canReview
+                  ? {
+                      onReview: (action: Exclude<ReviewState, "open">, note: string) =>
+                        review.mutate({ patientId: a.patient_id, alertId: a.id, action, note }),
+                    }
+                  : {})}
+              />
+            );
+          })}
         </div>
       )}
     </AppShell>
