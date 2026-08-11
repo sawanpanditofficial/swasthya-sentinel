@@ -111,6 +111,52 @@ export interface Profile {
   reminder_contact: string | null;
   consent_revoked_at: string | null;
   best_streak: number;
+  consent_voice: boolean;
+  consent_reaction: boolean;
+  consent_activity: boolean;
+  consent_symptoms: boolean;
+  consent_vitals: boolean;
+  guardian_name: string | null;
+  guardian_relation: string | null;
+}
+
+/** Which part of the daily check a consent decision applies to. */
+export type ConsentScope = "all" | "voice" | "reaction" | "activity" | "symptoms" | "vitals";
+
+export interface ConsentEvent {
+  id: string;
+  profile_id: string;
+  scope: ConsentScope;
+  granted: boolean;
+  actor: "self" | "guardian";
+  actor_name: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+/** Village coverage plus permission grants for an ASHA worker or clinician. */
+export interface WorkerAssignment {
+  id: string;
+  worker_id: string;
+  village: string;
+  can_review: boolean;
+  can_escalate: boolean;
+  note: string | null;
+  created_at: string;
+}
+
+export type DeliveryStatus = "sent" | "simulated" | "failed" | "skipped";
+
+export interface DeliveryAttempt {
+  id: string;
+  user_id: string;
+  channel: ReminderChannel;
+  contact: string | null;
+  kind: "test" | "reminder";
+  status: DeliveryStatus;
+  message: string | null;
+  error: string | null;
+  created_at: string;
 }
 
 
