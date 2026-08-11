@@ -94,15 +94,27 @@ function SettingsPage() {
   const profile = profileQuery.data;
   const role = profile?.role === "doctor" ? "doctor" : profile?.role === "asha" ? "asha" : "patient";
 
+  const channelMeta = reminderChannelMeta(profile?.reminder_channel ?? "in_app");
+  const [contact, setContact] = useState("");
+  // Keep the contact input in step with the saved profile value.
+  useEffect(() => {
+    setContact(profile?.reminder_contact ?? "");
+  }, [profile?.reminder_contact, profile?.reminder_channel]);
+
   const reminders = useMutation({
-    mutationFn: (patch: { reminder_enabled?: boolean; reminder_time?: string }) =>
-      saveReminderSettings(user!.id, patch),
+    mutationFn: (patch: {
+      reminder_enabled?: boolean;
+      reminder_time?: string;
+      reminder_channel?: ReminderChannel;
+      reminder_contact?: string | null;
+    }) => saveReminderSettings(user!.id, patch),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast.success("Reminder preferences saved.");
     },
     onError: () => toast.error("Could not save reminder preferences."),
   });
+
 
   const consent = useMutation({
     mutationFn: (next: boolean) => setConsent(user!.id, next),
