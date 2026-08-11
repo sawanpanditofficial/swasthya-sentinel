@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { DEMO_PATIENT_ID, ensureProfile, getChecks, getPatient, listReferrals } from "@/lib/health/api";
 import { buildBaseline } from "@/lib/health/drift";
+import { toSeries } from "@/lib/health/series";
+
 
 export const Route = createFileRoute("/_authenticated/patient")({
   head: () => ({
